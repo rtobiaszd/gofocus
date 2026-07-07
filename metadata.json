@@ -1,0 +1,6 @@
+{
+  "name": "Plataforma de Gestão Municipal",
+  "description": "Sprint 01 do MVP da plataforma de gestão e monitoramento de indicadores municipais.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
