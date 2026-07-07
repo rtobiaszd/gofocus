@@ -308,6 +308,7 @@ export class RealDatabaseService {
 
   // --- USUARIOS ---
   static async getUsuarios(): Promise<Usuario[]> {
+    let localData = this.getStored<Usuario>('usuarios', []);
     try {
       const { data, error } = await supabase.from('usuarios').select('*');
       if (error) throw error;
@@ -321,12 +322,24 @@ export class RealDatabaseService {
           avatar: u.avatar,
           senha: u.senha || 'senha123'
         }));
-        this.setStored('usuarios', mapped);
-        return mapped;
+        // Merge: localStorage changes (password, new users) override Supabase data
+        const merged = mapped.map(sup => {
+          const local = localData.find(l => l.id === sup.id);
+          return local ? { ...sup, ...local } : sup;
+        });
+        // Keep any users that exist only in localStorage (e.g. just added)
+        for (const local of localData) {
+          if (!merged.find(m => m.id === local.id)) {
+            merged.push(local);
+          }
+        }
+        this.setStored('usuarios', merged);
+        return merged;
       }
     } catch (e) {
       console.warn('Real Supabase query failed, falling back to dynamic LocalStorage DB:', e);
     }
+    if (localData.length > 0) return localData;
     return this.getStored<Usuario>('usuarios', [
       { id: 'demo-user-1', nome: 'Dr. Roberto Silveira (Demo)', email: 'demo@gofocus.com.br', cargo: 'Admin', status: 'Ativo', avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80', senha: 'senha123' },
       { id: 'u-2', nome: 'Mariana Costa', email: 'mariana.costa@gofocus.com.br', cargo: 'Gestor', status: 'Ativo', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80', senha: 'senha123' }
@@ -334,6 +347,15 @@ export class RealDatabaseService {
   }
 
   static async saveUsuario(usuario: Usuario): Promise<void> {
+    // Save to localStorage first (immediate persistence)
+    const current = this.getStored<Usuario>('usuarios', []);
+    const exists = current.find(u => u.id === usuario.id);
+    const updated = exists 
+      ? current.map(u => u.id === usuario.id ? usuario : u)
+      : [...current, usuario];
+    this.setStored('usuarios', updated);
+
+    // Then try Supabase in background
     try {
       const { error } = await supabase.from('usuarios').upsert({
         id: usuario.id,
@@ -348,12 +370,6 @@ export class RealDatabaseService {
     } catch (e) {
       console.warn('Could not save user to Supabase:', e);
     }
-    const current = this.getStored<Usuario>('usuarios', []);
-    const exists = current.find(u => u.id === usuario.id);
-    const updated = exists 
-      ? current.map(u => u.id === usuario.id ? usuario : u)
-      : [...current, usuario];
-    this.setStored('usuarios', updated);
   }
 
   static async removeUsuario(id: string): Promise<void> {

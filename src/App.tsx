@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { Upload, User, Cpu, Eye, EyeOff, Key, Sparkles, Check } from 'lucide-react';
+import { Upload, User } from 'lucide-react';
 import { Municipio, Usuario, Indicador, ResultadoIndicador, Alerta, Missao } from './types';
 import { RealDatabaseService } from './lib/supabaseClient';
 
@@ -419,7 +419,6 @@ interface ProfileModalProps {
 }
 
 function ProfileModal({ user, onClose, onSave }: ProfileModalProps) {
-  const [activeTab, setActiveTab] = useState<'perfil' | 'ia'>('perfil');
   const [nome, setNome] = useState(user.nome);
   const [avatar, setAvatar] = useState(user.avatar || '');
   const [error, setError] = useState('');
@@ -428,90 +427,18 @@ function ProfileModal({ user, onClose, onSave }: ProfileModalProps) {
   const [showUrlInput, setShowUrlInput] = useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
-  // AI Configuration States
-  const [aiProvider, setAiProvider] = useState(() => localStorage.getItem('gofocus_ai_provider') || 'gemini');
-  const [aiKey, setAiKey] = useState(() => localStorage.getItem('gofocus_ai_key') || '');
-  const [aiModel, setAiModel] = useState(() => {
-    const saved = localStorage.getItem('gofocus_ai_model');
-    if (saved) return saved;
-    const provider = localStorage.getItem('gofocus_ai_provider') || 'gemini';
-    return provider === 'gemini' ? 'gemini-1.5-flash' : provider === 'openai' ? 'gpt-4o-mini' : 'claude-3-haiku';
-  });
-  const [aiTemp, setAiTemp] = useState(() => parseFloat(localStorage.getItem('gofocus_ai_temperature') || '0.4'));
-  const [showAiKey, setShowAiKey] = useState(false);
-
-  // Connection Test States
-  const [isTesting, setIsTesting] = useState(false);
-  const [testResult, setTestResult] = useState<{ status: 'success' | 'error'; message: string } | null>(null);
-
-  // Auto update default model on provider change if not customized
-  const handleProviderChange = (provider: string) => {
-    setAiProvider(provider);
-    if (provider === 'gemini') {
-      setAiModel('gemini-1.5-flash');
-    } else if (provider === 'openai') {
-      setAiModel('gpt-4o-mini');
-    } else if (provider === 'claude') {
-      setAiModel('claude-3-haiku-20240307');
-    } else {
-      setAiModel('local-ollama-llama3');
-    }
-    setTestResult(null);
-  };
-
-  const handleTestConnection = () => {
-    setTestResult(null);
-    if (aiProvider !== 'local' && !aiKey.trim()) {
-      setTestResult({
-        status: 'error',
-        message: 'Por favor, insira uma Chave de API válida para testar a comunicação com o servidor de IA.'
-      });
-      return;
-    }
-
-    setIsTesting(true);
-    setTimeout(() => {
-      setIsTesting(false);
-      if (aiProvider === 'local') {
-        setTestResult({
-          status: 'success',
-          message: 'Conectado com sucesso ao servidor de IA Local! Pronto para processar diagnósticos regionais offline.'
-        });
-      } else {
-        const provName = aiProvider === 'gemini' ? 'Google Gemini' : aiProvider === 'openai' ? 'OpenAI GPT' : 'Anthropic Claude';
-        setTestResult({
-          status: 'success',
-          message: `Conexão autenticada e autorizada! O provedor ${provName} respondeu com sucesso para o modelo ${aiModel}.`
-        });
-      }
-    }, 1200);
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setSuccess('');
 
-    if (activeTab === 'perfil') {
-      if (!nome.trim()) {
-        setError('O nome é obrigatório.');
-        return;
-      }
-      onSave({ nome: nome.trim(), avatar: avatar.trim() });
-      setSuccess('Perfil do usuário atualizado com sucesso!');
-      setTimeout(() => setSuccess(''), 3000);
-    } else {
-      // Save AI keys to local storage
-      localStorage.setItem('gofocus_ai_provider', aiProvider);
-      localStorage.setItem('gofocus_ai_key', aiKey);
-      localStorage.setItem('gofocus_ai_model', aiModel);
-      localStorage.setItem('gofocus_ai_temperature', aiTemp.toString());
-      
-      setSuccess('Configurações de inteligência artificial salvas com sucesso!');
-      // Dispatch a storage event so that other components know the keys changed
-      window.dispatchEvent(new Event('storage'));
-      setTimeout(() => setSuccess(''), 3000);
+    if (!nome.trim()) {
+      setError('O nome é obrigatório.');
+      return;
     }
+    onSave({ nome: nome.trim(), avatar: avatar.trim() });
+    setSuccess('Perfil do usuário atualizado com sucesso!');
+    setTimeout(() => setSuccess(''), 3000);
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -567,33 +494,10 @@ function ProfileModal({ user, onClose, onSave }: ProfileModalProps) {
           </button>
         </div>
 
-        {/* Tab Selector */}
-        <div className="flex border-b border-slate-200 bg-slate-50/50 px-6 shrink-0">
-          <button
-            type="button"
-            onClick={() => { setActiveTab('perfil'); setError(''); setSuccess(''); }}
-            className={`py-3 px-4 font-bold text-xs uppercase tracking-wider border-b-2 flex items-center gap-2 transition-all cursor-pointer ${
-              activeTab === 'perfil' 
-                ? 'border-indigo-600 text-indigo-600' 
-                : 'border-transparent text-slate-400 hover:text-slate-600'
-            }`}
-          >
-            <User className="h-4 w-4" />
-            <span>Meu Perfil</span>
-          </button>
-          
-          <button
-            type="button"
-            onClick={() => { setActiveTab('ia'); setError(''); setSuccess(''); }}
-            className={`py-3 px-4 font-bold text-xs uppercase tracking-wider border-b-2 flex items-center gap-2 transition-all cursor-pointer ${
-              activeTab === 'ia' 
-                ? 'border-indigo-600 text-indigo-600' 
-                : 'border-transparent text-slate-400 hover:text-slate-600'
-            }`}
-          >
-            <Cpu className="h-4 w-4" />
-            <span>Serviços de IA</span>
-          </button>
+        {/* Tab Header */}
+        <div className="px-6 py-3 border-b border-slate-200 bg-slate-50/50 flex items-center gap-2 shrink-0">
+          <User className="h-4 w-4 text-indigo-600" />
+          <span className="font-bold text-xs uppercase tracking-wider text-slate-500">Meu Perfil</span>
         </div>
 
         {/* Modal Body / Scrollable */}
@@ -611,8 +515,7 @@ function ProfileModal({ user, onClose, onSave }: ProfileModalProps) {
             </div>
           )}
 
-          {activeTab === 'perfil' ? (
-            <div className="space-y-4">
+          <div className="space-y-4">
               <div>
                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Nome Completo *</label>
                 <input 
@@ -734,123 +637,7 @@ function ProfileModal({ user, onClose, onSave }: ProfileModalProps) {
                 </div>
               </div>
             </div>
-          ) : (
-            <div className="space-y-4">
-              <div className="bg-indigo-50 border border-indigo-100 rounded-2xl p-4 flex gap-3">
-                <Sparkles className="h-5 w-5 text-indigo-600 shrink-0 mt-0.5" />
-                <div className="space-y-1">
-                  <h4 className="font-bold text-slate-800 text-xs">Aceleração com Inteligência Artificial</h4>
-                  <p className="text-[11px] text-slate-500 leading-relaxed">
-                    Configure as credenciais e provedor para alimentar o motor de diagnóstico e as sugestões automatizadas de correções do GovFocus.
-                  </p>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Provedor de Serviço de IA</label>
-                <select 
-                  value={aiProvider}
-                  onChange={(e) => handleProviderChange(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-700 font-medium"
-                >
-                  <option value="gemini">Google Gemini AI</option>
-                  <option value="openai">OpenAI ChatGPT API</option>
-                  <option value="claude">Anthropic Claude API</option>
-                  <option value="local">GovFocus Local IA (Offline / Simulado)</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Modelo de Linguagem (LLM)</label>
-                <input 
-                  type="text" 
-                  value={aiModel}
-                  onChange={(e) => setAiModel(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-700 font-mono"
-                  placeholder="Ex: gemini-1.5-flash"
-                />
-              </div>
-
-              {aiProvider !== 'local' && (
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Chave de API (Secret Key)</label>
-                  <div className="relative">
-                    <input 
-                      type={showAiKey ? 'text' : 'password'} 
-                      value={aiKey}
-                      onChange={(e) => setAiKey(e.target.value)}
-                      placeholder="Coloque sua API key privada aqui"
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-3 pr-10 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-700 font-mono"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowAiKey(!showAiKey)}
-                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1"
-                    >
-                      {showAiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </button>
-                  </div>
-                  <p className="text-[10px] text-slate-400 mt-1">Sua chave é armazenada de forma segura e localmente no seu navegador.</p>
-                </div>
-              )}
-
-              <div>
-                <div className="flex justify-between items-center mb-1">
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Criatividade (Temperatura)</label>
-                  <span className="text-xs font-bold font-mono text-indigo-600">{aiTemp.toFixed(1)}</span>
-                </div>
-                <input 
-                  type="range" 
-                  min="0" 
-                  max="1.0" 
-                  step="0.1" 
-                  value={aiTemp}
-                  onChange={(e) => setAiTemp(parseFloat(e.target.value))}
-                  className="w-full accent-indigo-600 h-1.5 bg-slate-100 rounded-lg cursor-pointer"
-                />
-                <div className="flex justify-between text-[10px] text-slate-400 font-medium">
-                  <span>Determinístico (0.0)</span>
-                  <span>Criativo (1.0)</span>
-                </div>
-              </div>
-
-              {/* Connection Tester section */}
-              <div className="pt-2 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={handleTestConnection}
-                  disabled={isTesting}
-                  className="w-full py-2 bg-slate-100 hover:bg-slate-200 disabled:bg-slate-50 disabled:text-slate-400 text-slate-700 text-xs font-bold rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5"
-                >
-                  <Key className="h-4 w-4 text-slate-500" />
-                  <span>{isTesting ? 'Testando Conexão...' : 'Testar Comunicação de API'}</span>
-                </button>
-
-                {testResult && (
-                  <div className={`mt-3 p-3 rounded-xl border text-xs animate-in fade-in duration-150 ${
-                    testResult.status === 'success' 
-                      ? 'bg-emerald-50 border-emerald-100 text-emerald-800' 
-                      : 'bg-rose-50 border-rose-100 text-rose-800'
-                  }`}>
-                    <div className="font-bold flex items-center gap-1.5 mb-0.5">
-                      {testResult.status === 'success' ? (
-                        <>
-                          <Check className="h-4 w-4 text-emerald-600" />
-                          <span>Status: OK</span>
-                        </>
-                      ) : (
-                        <>
-                          <span className="h-2 w-2 rounded-full bg-rose-500"></span>
-                          <span>Erro de Configuração</span>
-                        </>
-                      )}
-                    </div>
-                    <p className="text-[11px] leading-relaxed opacity-90">{testResult.message}</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
+          </div>
 
           {/* Modal Footer (Unified Save) */}
           <div className="pt-4 border-t border-slate-100 flex justify-end gap-3 shrink-0">

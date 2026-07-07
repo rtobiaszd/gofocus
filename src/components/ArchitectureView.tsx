@@ -27,7 +27,8 @@ import {
   Save,
   AlertCircle,
   CheckCircle,
-  HelpCircle
+  HelpCircle,
+  EyeOff
 } from 'lucide-react';
 import { Usuario } from '../types';
 import { SQL_MIGRATION_SCRIPT, RealDatabaseService } from '../lib/supabaseClient';
@@ -636,6 +637,20 @@ export default function ArchitectureView({ user }: ArchitectureViewProps) {
   const [isTestingDb, setIsTestingDb] = useState(false);
   const [dbTestResult, setDbTestResult] = useState<{ success: boolean; message: string } | null>(null);
 
+  // AI Configuration States
+  const [aiProvider, setAiProvider] = useState(() => localStorage.getItem('gofocus_ai_provider') || 'gemini');
+  const [aiKey, setAiKey] = useState(() => localStorage.getItem('gofocus_ai_key') || '');
+  const [aiModel, setAiModel] = useState(() => {
+    const saved = localStorage.getItem('gofocus_ai_model');
+    if (saved) return saved;
+    const provider = localStorage.getItem('gofocus_ai_provider') || 'gemini';
+    return provider === 'gemini' ? 'gemini-1.5-flash' : provider === 'openai' ? 'gpt-4o-mini' : 'claude-3-haiku';
+  });
+  const [aiTemp, setAiTemp] = useState(() => parseFloat(localStorage.getItem('gofocus_ai_temperature') || '0.4'));
+  const [showAiKey, setShowAiKey] = useState(false);
+  const [isTestingAi, setIsTestingAi] = useState(false);
+  const [aiTestResult, setAiTestResult] = useState<{ status: 'success' | 'error'; message: string } | null>(null);
+
   const handleTestDbConnection = async () => {
     setIsTestingDb(true);
     setDbTestResult(null);
@@ -666,6 +681,47 @@ export default function ArchitectureView({ user }: ArchitectureViewProps) {
     } finally {
       setIsTestingDb(false);
     }
+  };
+
+  const handleAiProviderChange = (provider: string) => {
+    setAiProvider(provider);
+    if (provider === 'gemini') {
+      setAiModel('gemini-1.5-flash');
+    } else if (provider === 'openai') {
+      setAiModel('gpt-4o-mini');
+    } else if (provider === 'claude') {
+      setAiModel('claude-3-haiku-20240307');
+    } else {
+      setAiModel('local-ollama-llama3');
+    }
+    setAiTestResult(null);
+  };
+
+  const handleTestAiConnection = () => {
+    setAiTestResult(null);
+    if (aiProvider !== 'local' && !aiKey.trim()) {
+      setAiTestResult({
+        status: 'error',
+        message: 'Por favor, insira uma Chave de API válida para testar a comunicação com o servidor de IA.'
+      });
+      return;
+    }
+    setIsTestingAi(true);
+    setTimeout(() => {
+      setIsTestingAi(false);
+      if (aiProvider === 'local') {
+        setAiTestResult({
+          status: 'success',
+          message: 'Conectado com sucesso ao servidor de IA Local! Pronto para processar diagnósticos regionais offline.'
+        });
+      } else {
+        const provName = aiProvider === 'gemini' ? 'Google Gemini' : aiProvider === 'openai' ? 'OpenAI GPT' : 'Anthropic Claude';
+        setAiTestResult({
+          status: 'success',
+          message: `Conexão autenticada e autorizada! O provedor ${provName} respondeu com sucesso para o modelo ${aiModel}.`
+        });
+      }
+    }, 1200);
   };
 
   const handleSaveSettings = (e: React.FormEvent) => {
@@ -699,6 +755,13 @@ export default function ArchitectureView({ user }: ArchitectureViewProps) {
       localStorage.setItem('cfg_smtp_user', smtpUser);
       localStorage.setItem('cfg_smtp_pass', smtpPass);
       localStorage.setItem('cfg_smtp_sender', smtpSender);
+
+      localStorage.setItem('gofocus_ai_provider', aiProvider);
+      localStorage.setItem('gofocus_ai_key', aiKey);
+      localStorage.setItem('gofocus_ai_model', aiModel);
+      localStorage.setItem('gofocus_ai_temperature', aiTemp.toString());
+
+      window.dispatchEvent(new Event('storage'));
 
       setIsSaving(false);
       setSaveSuccess('Todas as credenciais e configurações de produção foram salvas com sucesso no banco de dados e sincronizadas com o Edge!');
@@ -1270,81 +1333,135 @@ CREATE TABLE resultados (
               </div>
             </div>
 
-            {/* PostgreSQL Database Box */}
+            {/* AI Configuration Box */}
             <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
               <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
-                <Database className="h-5 w-5 text-indigo-600" />
+                <Sparkles className="h-5 w-5 text-indigo-600" />
                 <div>
-                  <h4 className="font-bold text-slate-800 text-sm">Banco de Dados PostgreSQL (Drizzle/ORM)</h4>
-                  <p className="text-[10px] text-slate-400">Dados de pooler e replicação física no Supabase</p>
+                  <h4 className="font-bold text-slate-800 text-sm">Configurações de Inteligência Artificial</h4>
+                  <p className="text-[10px] text-slate-400">Provedor, credenciais e parâmetros dos serviços de IA</p>
                 </div>
               </div>
 
               <div className="space-y-3.5">
-                <div className="grid grid-cols-3 gap-2">
-                  <div className="col-span-2 space-y-1">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">DATABASE_HOST</label>
-                    <input 
-                      type="text" 
-                      value={dbHost} 
-                      onChange={(e) => setDbHost(e.target.value)} 
-                      disabled={user?.cargo !== 'Admin'}
-                      placeholder="db.supabase.co"
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition-all font-mono"
-                    />
-                  </div>
-                  <div className="col-span-1 space-y-1">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">PORT</label>
-                    <input 
-                      type="text" 
-                      value={dbPort} 
-                      onChange={(e) => setDbPort(e.target.value)} 
-                      disabled={user?.cargo !== 'Admin'}
-                      placeholder="5432"
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition-all font-mono"
-                    />
-                  </div>
+                <div className="bg-indigo-50 border border-indigo-100 rounded-2xl p-3 flex gap-2.5">
+                  <Sparkles className="h-4 w-4 text-indigo-600 shrink-0 mt-0.5" />
+                  <p className="text-[11px] text-slate-500 leading-relaxed">
+                    Configure as credenciais e provedor para alimentar o motor de diagnóstico e as sugestões automatizadas de correções do GovFocus.
+                  </p>
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">DATABASE_NAME</label>
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Provedor de Serviço de IA</label>
+                  <select 
+                    value={aiProvider}
+                    onChange={(e) => handleAiProviderChange(e.target.value)}
+                    disabled={user?.cargo !== 'Admin'}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition-all font-medium"
+                  >
+                    <option value="gemini">Google Gemini AI</option>
+                    <option value="openai">OpenAI ChatGPT API</option>
+                    <option value="claude">Anthropic Claude API</option>
+                    <option value="local">GovFocus Local IA (Offline / Simulado)</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Modelo de Linguagem (LLM)</label>
                   <input 
                     type="text" 
-                    value={dbName} 
-                    onChange={(e) => setDbName(e.target.value)} 
+                    value={aiModel}
+                    onChange={(e) => setAiModel(e.target.value)}
                     disabled={user?.cargo !== 'Admin'}
-                    placeholder="postgres"
+                    placeholder="Ex: gemini-1.5-flash"
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition-all font-mono"
                   />
                 </div>
 
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">DATABASE_USER</label>
-                  <input 
-                    type="text" 
-                    value={dbUser} 
-                    onChange={(e) => setDbUser(e.target.value)} 
-                    disabled={user?.cargo !== 'Admin'}
-                    placeholder="postgres"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition-all font-mono"
-                  />
-                </div>
+                {aiProvider !== 'local' && (
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Chave de API (Secret Key)</label>
+                    <div className="relative">
+                      <input 
+                        type={showAiKey ? 'text' : 'password'} 
+                        value={aiKey}
+                        onChange={(e) => setAiKey(e.target.value)}
+                        disabled={user?.cargo !== 'Admin'}
+                        placeholder="Coloque sua API key privada aqui"
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 pl-3 pr-10 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition-all font-mono"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowAiKey(!showAiKey)}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
+                      >
+                        {showAiKey ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                      </button>
+                    </div>
+                    <p className="text-[9px] text-slate-400 mt-0.5">Sua chave é armazenada de forma segura e localmente no seu navegador.</p>
+                  </div>
+                )}
 
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">DATABASE_PASSWORD</label>
+                  <div className="flex justify-between items-center">
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Criatividade (Temperatura)</label>
+                    <span className="text-xs font-bold font-mono text-indigo-600">{aiTemp.toFixed(1)}</span>
+                  </div>
                   <input 
-                    type="password" 
-                    value={dbPass} 
-                    onChange={(e) => setDbPass(e.target.value)} 
+                    type="range" 
+                    min="0" 
+                    max="1.0" 
+                    step="0.1" 
+                    value={aiTemp}
+                    onChange={(e) => setAiTemp(parseFloat(e.target.value))}
                     disabled={user?.cargo !== 'Admin'}
-                    placeholder="SuaSenhaForte"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition-all font-mono"
+                    className="w-full accent-indigo-600 h-1.5 bg-slate-100 rounded-lg cursor-pointer"
                   />
+                  <div className="flex justify-between text-[9px] text-slate-400 font-medium">
+                    <span>Determinístico (0.0)</span>
+                    <span>Criativo (1.0)</span>
+                  </div>
+                </div>
+
+                {/* Connection Tester */}
+                <div className="pt-2 border-t border-slate-100 space-y-2.5">
+                  <button
+                    type="button"
+                    onClick={handleTestAiConnection}
+                    disabled={isTestingAi || user?.cargo !== 'Admin'}
+                    className="w-full py-2 px-3 bg-slate-100 hover:bg-slate-200 disabled:bg-slate-50 disabled:text-slate-400 text-slate-700 text-[11px] font-bold rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer border border-slate-200"
+                  >
+                    <Key className="h-3.5 w-3.5 text-indigo-600" />
+                    <span>{isTestingAi ? 'Testando Conexão...' : 'Testar Comunicação de API'}</span>
+                  </button>
+
+                  {aiTestResult && (
+                    <div className={`p-3 rounded-xl border text-[11px] leading-relaxed animate-in fade-in duration-150 ${
+                      aiTestResult.status === 'success' 
+                        ? 'bg-emerald-50 border-emerald-100 text-emerald-800' 
+                        : 'bg-rose-50 border-rose-100 text-rose-800'
+                    }`}>
+                      <div className="font-bold flex items-center gap-1.5 mb-1">
+                        {aiTestResult.status === 'success' ? (
+                          <>
+                            <Check className="h-3.5 w-3.5 text-emerald-600" />
+                            <span>Status: OK</span>
+                          </>
+                        ) : (
+                          <>
+                            <span className="h-2 w-2 rounded-full bg-rose-500"></span>
+                            <span>Erro de Configuração</span>
+                          </>
+                        )}
+                      </div>
+                      <p className="text-[10px] leading-relaxed opacity-90">{aiTestResult.message}</p>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
 
-            {/* Vercel Deployment Box */}
+            {false && (
             <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
               <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
                 <Globe className="h-5 w-5 text-indigo-600" />
@@ -1392,6 +1509,7 @@ CREATE TABLE resultados (
                 </div>
               </div>
             </div>
+            )}
 
             {/* Email Dispatcher Box */}
             <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
@@ -1491,6 +1609,10 @@ CREATE TABLE resultados (
                   localStorage.removeItem('cfg_smtp_user');
                   localStorage.removeItem('cfg_smtp_pass');
                   localStorage.removeItem('cfg_smtp_sender');
+                  localStorage.removeItem('gofocus_ai_provider');
+                  localStorage.removeItem('gofocus_ai_key');
+                  localStorage.removeItem('gofocus_ai_model');
+                  localStorage.removeItem('gofocus_ai_temperature');
                   
                   // Reload defaults
                   setSupabaseUrl('https://wpblbpehhfafzouxcmis.supabase.co');
@@ -1509,6 +1631,10 @@ CREATE TABLE resultados (
                   setSmtpUser('apikey');
                   setSmtpPass('••••••••••••••••••••');
                   setSmtpSender('alertas@gofocus.com.br');
+                  setAiProvider('gemini');
+                  setAiKey('');
+                  setAiModel('gemini-1.5-flash');
+                  setAiTemp(0.4);
 
                   setSaveSuccess('Configurações redefinidas para os padrões mockados de fábrica com sucesso!');
                 }
