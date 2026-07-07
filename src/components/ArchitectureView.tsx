@@ -30,6 +30,7 @@ import {
   HelpCircle
 } from 'lucide-react';
 import { Usuario } from '../types';
+import { SQL_MIGRATION_SCRIPT } from '../lib/supabaseClient';
 
 const FILES_DATA = {
   'middleware.ts': {
@@ -1096,6 +1097,40 @@ CREATE TABLE resultados (
               <span>{saveError}</span>
             </div>
           )}
+
+          {/* Database Migration & Seeding Card */}
+          <div className="bg-slate-900 text-slate-100 rounded-2xl border border-slate-800 p-6 shadow-xl space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+              <div className="flex items-start gap-3">
+                <div className="p-3 bg-indigo-500/20 rounded-xl text-indigo-400 border border-indigo-500/30">
+                  <Database className="h-6 w-6" />
+                </div>
+                <div>
+                  <h4 className="font-extrabold text-slate-100 text-sm md:text-base">MIGRATION: Provisionamento & População do Banco de Dados</h4>
+                  <p className="text-xs text-slate-400 leading-relaxed max-w-xl mt-1">
+                    Copie a migration SQL pre-configurada abaixo e cole no **SQL Editor** do seu console do Supabase. Ela cria todas as tabelas reais do sistema (<code className="text-indigo-300">municipios</code>, <code className="text-indigo-300">usuarios</code>, <code className="text-indigo-300">alertas</code>, etc.), configura as políticas RLS e popula 1 exemplo de teste real para o usuário administrador demo <code className="text-indigo-300 font-semibold font-mono">demo@gofocus.com.br</code> com senha <code className="text-indigo-300 font-semibold">senha123</code>.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  navigator.clipboard.writeText(SQL_MIGRATION_SCRIPT);
+                  alert('Script SQL de migração copiado com sucesso! Agora basta colar no painel SQL Editor do Supabase.');
+                }}
+                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-sm shrink-0 whitespace-nowrap self-start"
+              >
+                <Copy className="h-4 w-4" />
+                <span>Copiar Script SQL</span>
+              </button>
+            </div>
+            
+            <div className="relative">
+              <pre className="bg-slate-950 p-4 rounded-xl border border-slate-800 font-mono text-[10px] text-slate-300 max-h-48 overflow-y-auto leading-relaxed scrollbar-thin">
+                {SQL_MIGRATION_SCRIPT}
+              </pre>
+            </div>
+          </div>
 
           {/* Configuration Sections Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
