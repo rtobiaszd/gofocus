@@ -354,40 +354,21 @@ export class RealDatabaseService {
   }
 
   static async saveUsuario(usuario: Usuario): Promise<void> {
-    // Save to localStorage first (immediate persistence)
-    const current = this.getStored<Usuario>('usuarios', []);
-    const exists = current.find(u => u.id === usuario.id);
-    const updated = exists 
-      ? current.map(u => u.id === usuario.id ? usuario : u)
-      : [...current, usuario];
-    this.setStored('usuarios', updated);
-
-    // Then try Supabase in background
-    try {
-      const { error } = await supabase.from('usuarios').upsert({
-        id: usuario.id,
-        nome: usuario.nome,
-        email: usuario.email,
-        cargo: usuario.cargo,
-        status: usuario.status,
-        avatar: usuario.avatar,
-        senha: usuario.senha || 'senha123'
-      });
-      if (error) throw error;
-    } catch (e) {
-      console.warn('Could not save user to Supabase:', e);
-    }
+    const { error } = await supabase.from('usuarios').upsert({
+      id: usuario.id,
+      nome: usuario.nome,
+      email: usuario.email,
+      cargo: usuario.cargo,
+      status: usuario.status,
+      avatar: usuario.avatar,
+      senha: usuario.senha || 'senha123'
+    });
+    if (error) throw error;
   }
 
   static async removeUsuario(id: string): Promise<void> {
-    try {
-      const { error } = await supabase.from('usuarios').delete().eq('id', id);
-      if (error) throw error;
-    } catch (e) {
-      console.warn('Could not delete user from Supabase:', e);
-    }
-    const current = this.getStored<Usuario>('usuarios', []);
-    this.setStored('usuarios', current.filter(u => u.id !== id));
+    const { error } = await supabase.from('usuarios').delete().eq('id', id);
+    if (error) throw error;
   }
 
   // --- INDICADORES ---

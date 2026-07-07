@@ -1,71 +1,100 @@
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
+'use client'
 
-import React, { useState } from 'react';
-import { Search, Plus, MapPin, Building, Trash2, Edit, Check, AlertCircle, X, Users, Eye } from 'lucide-react';
-import { Municipio } from '../types';
+import React, { useState } from 'react'
+import { Search, Plus, MapPin, Building, Trash2, Edit, AlertCircle, X, Users, Eye } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { Municipio } from '@/types'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Badge } from '@/components/ui/badge'
+import { Card, CardContent, CardTitle } from '@/components/ui/card'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogTrigger,
+} from '@/components/ui/dialog'
 
 interface MunicipiosViewProps {
-  municipios: Municipio[];
-  onAddMunicipio: (municipio: Omit<Municipio, 'id'>) => void;
-  onRemoveMunicipio: (id: string) => void;
-  onEditMunicipio: (id: string, updatedFields: Partial<Municipio>) => void;
+  municipios: Municipio[]
+  onAddMunicipio: (municipio: Omit<Municipio, 'id'>) => void
+  onRemoveMunicipio: (id: string) => void
+  onEditMunicipio: (id: string, updatedFields: Partial<Municipio>) => void
+}
+
+const ESTADOS = ['SP', 'RJ', 'MG', 'RS', 'PR', 'SC', 'CE', 'PE', 'BA', 'GO', 'TO', 'MS'] as const
+
+const statusBadgeClass = (status: string) => {
+  switch (status) {
+    case 'Ativo':
+      return 'bg-indigo-50 text-indigo-700 border-indigo-100 hover:bg-indigo-50'
+    case 'Pendente':
+      return 'bg-amber-50 text-amber-700 border-amber-100 hover:bg-amber-50'
+    default:
+      return 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-100'
+  }
 }
 
 export default function MunicipiosView({
   municipios,
   onAddMunicipio,
   onRemoveMunicipio,
-  onEditMunicipio
+  onEditMunicipio,
 }: MunicipiosViewProps) {
-  const [search, setSearch] = useState('');
-  const [filterStatus, setFilterStatus] = useState<string>('todos');
-  const [showAddForm, setShowAddForm] = useState(false);
+  const [search, setSearch] = useState('')
+  const [filterStatus, setFilterStatus] = useState<string>('todos')
+  const [showAddDialog, setShowAddDialog] = useState(false)
 
-  // New city form states
-  const [nome, setNome] = useState('');
-  const [estado, setEstado] = useState('SP');
-  const [populacao, setPopulacao] = useState('');
-  const [prefeito, setPrefeito] = useState('');
-  const [status, setStatus] = useState<'Ativo' | 'Pendente' | 'Inativo'>('Ativo');
-  const [error, setError] = useState('');
+  const [nome, setNome] = useState('')
+  const [estado, setEstado] = useState('SP')
+  const [populacao, setPopulacao] = useState('')
+  const [prefeito, setPrefeito] = useState('')
+  const [status, setStatus] = useState<'Ativo' | 'Pendente' | 'Inativo'>('Ativo')
+  const [error, setError] = useState('')
 
-  // Edit & View city states
-  const [editingMunicipio, setEditingMunicipio] = useState<Municipio | null>(null);
-  const [isEditMode, setIsEditMode] = useState(false);
-  const [editNome, setEditNome] = useState('');
-  const [editEstado, setEditEstado] = useState('SP');
-  const [editPopulacao, setEditPopulacao] = useState('');
-  const [editPrefeito, setEditPrefeito] = useState('');
-  const [editStatus, setEditStatus] = useState<'Ativo' | 'Pendente' | 'Inativo'>('Ativo');
-  const [editError, setEditError] = useState('');
+  const [editingMunicipio, setEditingMunicipio] = useState<Municipio | null>(null)
+  const [isEditMode, setIsEditMode] = useState(false)
+  const [editNome, setEditNome] = useState('')
+  const [editEstado, setEditEstado] = useState('SP')
+  const [editPopulacao, setEditPopulacao] = useState('')
+  const [editPrefeito, setEditPrefeito] = useState('')
+  const [editStatus, setEditStatus] = useState<'Ativo' | 'Pendente' | 'Inativo'>('Ativo')
+  const [editError, setEditError] = useState('')
 
   const handleOpenDetail = (m: Municipio, editImmediately = false) => {
-    setEditingMunicipio(m);
-    setEditNome(m.nome);
-    setEditEstado(m.estado);
-    setEditPrefeito(m.prefeito);
-    setEditPopulacao(m.populacao.toString());
-    setEditStatus(m.status);
-    setIsEditMode(editImmediately);
-    setEditError('');
-  };
+    setEditingMunicipio(m)
+    setEditNome(m.nome)
+    setEditEstado(m.estado)
+    setEditPrefeito(m.prefeito)
+    setEditPopulacao(m.populacao.toString())
+    setEditStatus(m.status)
+    setIsEditMode(editImmediately)
+    setEditError('')
+  }
 
   const handleEditSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingMunicipio) return;
+    e.preventDefault()
+    if (!editingMunicipio) return
 
     if (!editNome.trim() || !editPrefeito.trim() || !editPopulacao.trim()) {
-      setEditError('Por favor, preencha todos os campos obrigatórios.');
-      return;
+      setEditError('Por favor, preencha todos os campos obrigatórios.')
+      return
     }
 
-    const popNum = parseInt(editPopulacao);
+    const popNum = parseInt(editPopulacao)
     if (isNaN(popNum) || popNum <= 0) {
-      setEditError('A população deve ser um número positivo.');
-      return;
+      setEditError('A população deve ser um número positivo.')
+      return
     }
 
     onEditMunicipio(editingMunicipio.id, {
@@ -73,32 +102,33 @@ export default function MunicipiosView({
       estado: editEstado,
       populacao: popNum,
       status: editStatus,
-      prefeito: editPrefeito.trim()
-    });
+      prefeito: editPrefeito.trim(),
+    })
 
-    setEditingMunicipio(null);
-    setIsEditMode(false);
-    setEditError('');
-  };
+    setEditingMunicipio(null)
+    setIsEditMode(false)
+    setEditError('')
+  }
 
-  const filteredMunicipios = municipios.filter(m => {
-    const matchesSearch = m.nome.toLowerCase().includes(search.toLowerCase()) || 
-                          m.prefeito.toLowerCase().includes(search.toLowerCase());
-    const matchesStatus = filterStatus === 'todos' || m.status === filterStatus;
-    return matchesSearch && matchesStatus;
-  });
+  const filteredMunicipios = municipios.filter((m) => {
+    const matchesSearch =
+      m.nome.toLowerCase().includes(search.toLowerCase()) ||
+      m.prefeito.toLowerCase().includes(search.toLowerCase())
+    const matchesStatus = filterStatus === 'todos' || m.status === filterStatus
+    return matchesSearch && matchesStatus
+  })
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
     if (!nome.trim() || !prefeito.trim() || !populacao.trim()) {
-      setError('Por favor, preencha todos os campos obrigatórios.');
-      return;
+      setError('Por favor, preencha todos os campos obrigatórios.')
+      return
     }
 
-    const popNum = parseInt(populacao);
+    const popNum = parseInt(populacao)
     if (isNaN(popNum) || popNum <= 0) {
-      setError('A população deve ser um número positivo.');
-      return;
+      setError('A população deve ser um número positivo.')
+      return
     }
 
     onAddMunicipio({
@@ -107,436 +137,429 @@ export default function MunicipiosView({
       populacao: popNum,
       status,
       prefeito: prefeito.trim(),
-      dataAtivacao: new Date().toISOString().split('T')[0]
-    });
+      dataAtivacao: new Date().toISOString().split('T')[0],
+    })
 
-    // Reset Form
-    setNome('');
-    setPrefeito('');
-    setPopulacao('');
-    setStatus('Ativo');
-    setError('');
-    setShowAddForm(false);
-  };
+    setNome('')
+    setPrefeito('')
+    setPopulacao('')
+    setStatus('Ativo')
+    setError('')
+    setShowAddDialog(false)
+  }
+
+  const resetAddForm = () => {
+    setNome('')
+    setPrefeito('')
+    setPopulacao('')
+    setEstado('SP')
+    setStatus('Ativo')
+    setError('')
+  }
 
   return (
     <div className="space-y-6">
-      {/* Search and Quick Filters */}
-      <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-4 items-center justify-between">
-        <div className="relative w-full md:w-96">
-          <Search className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
-          <input 
-            type="text" 
-            placeholder="Buscar por município ou prefeito..." 
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-700"
-          />
-        </div>
-
-        <div className="flex w-full md:w-auto items-center gap-3 self-stretch md:self-auto justify-between md:justify-end">
-          <select 
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
-            className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-600 font-medium"
-          >
-            <option value="todos">Todos os Status</option>
-            <option value="Ativo">Status: Ativo</option>
-            <option value="Pendente">Status: Pendente</option>
-            <option value="Inativo">Status: Inativo</option>
-          </select>
-
-          <button 
-            onClick={() => setShowAddForm(true)}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2 shadow-md shadow-indigo-900/10 transition-all shrink-0 cursor-pointer"
-          >
-            <Plus className="h-4.5 w-4.5" />
-            <span>Novo Município</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Add Municipality Drawer / Modal Mock */}
-      {showAddForm && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-            <div className="px-6 py-4 bg-slate-50 border-b border-slate-150 flex justify-between items-center">
-              <div className="flex items-center gap-2">
-                <Building className="h-5 w-5 text-indigo-600" />
-                <h3 className="font-bold text-slate-800">Adicionar Município Cliente</h3>
-              </div>
-              <button 
-                onClick={() => {
-                  setShowAddForm(false);
-                  setError('');
-                }}
-                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition-colors"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
-              {error && (
-                <div className="bg-rose-50 border border-rose-100 text-rose-700 p-3 rounded-xl text-xs flex items-center gap-2">
-                  <AlertCircle className="h-4 w-4 shrink-0" />
-                  <span>{error}</span>
-                </div>
-              )}
-
-              <div className="grid grid-cols-3 gap-4">
-                <div className="col-span-2">
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Nome do Município *</label>
-                  <input 
-                    type="text" 
-                    placeholder="Ex: Rio Claro"
-                    value={nome}
-                    onChange={(e) => setNome(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-700"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Estado *</label>
-                  <select 
-                    value={estado}
-                    onChange={(e) => setEstado(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-700"
-                  >
-                    {['SP', 'RJ', 'MG', 'RS', 'PR', 'SC', 'CE', 'PE', 'BA', 'GO', 'TO', 'MS'].map(st => (
-                      <option key={st} value={st}>{st}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Nome do Prefeito(a) *</label>
-                <input 
-                  type="text" 
-                  placeholder="Nome do governante atual"
-                  value={prefeito}
-                  onChange={(e) => setPrefeito(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-700"
-                  required
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">População Estimada *</label>
-                  <input 
-                    type="number" 
-                    placeholder="Ex: 45000"
-                    value={populacao}
-                    onChange={(e) => setPopulacao(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-700"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Status Operacional</label>
-                  <select 
-                    value={status}
-                    onChange={(e) => setStatus(e.target.value as any)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-700"
-                  >
-                    <option value="Ativo">Ativo</option>
-                    <option value="Pendente">Pendente</option>
-                    <option value="Inativo">Inativo</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="pt-4 border-t border-slate-100 flex justify-end gap-3">
-                <button 
-                  type="button"
-                  onClick={() => {
-                    setShowAddForm(false);
-                    setError('');
-                  }}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-500 hover:bg-slate-150 transition-all"
-                >
-                  Cancelar
-                </button>
-                <button 
-                  type="submit"
-                  className="px-5 py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-950/10 transition-all"
-                >
-                  Salvar Município
-                </button>
-              </div>
-            </form>
+      <Card>
+        <CardContent className="p-5 flex flex-col md:flex-row gap-4 items-center justify-between">
+          <div className="relative w-full md:w-96">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar por município ou prefeito..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-10"
+            />
           </div>
-        </div>
-      )}
 
-      {/* Grid of Municipalities cards (Responsive layout) */}
+          <div className="flex w-full md:w-auto items-center gap-3 self-stretch md:self-auto justify-between md:justify-end">
+            <Select value={filterStatus} onValueChange={setFilterStatus}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Todos os Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos os Status</SelectItem>
+                <SelectItem value="Ativo">Status: Ativo</SelectItem>
+                <SelectItem value="Pendente">Status: Pendente</SelectItem>
+                <SelectItem value="Inativo">Status: Inativo</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Dialog
+              open={showAddDialog}
+              onOpenChange={(open) => {
+                setShowAddDialog(open)
+                if (!open) resetAddForm()
+              }}
+            >
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="h-4 w-4" />
+                  Novo Município
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-lg">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    <Building className="h-5 w-5 text-primary" />
+                    Adicionar Município Cliente
+                  </DialogTitle>
+                </DialogHeader>
+
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  {error && (
+                    <div className="bg-rose-50 border border-rose-100 text-rose-700 p-3 rounded-xl text-xs flex items-center gap-2">
+                      <AlertCircle className="h-4 w-4 shrink-0" />
+                      <span>{error}</span>
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="col-span-2 space-y-2">
+                      <Label htmlFor="nome">Nome do Município *</Label>
+                      <Input
+                        id="nome"
+                        placeholder="Ex: Rio Claro"
+                        value={nome}
+                        onChange={(e) => setNome(e.target.value)}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="estado">Estado *</Label>
+                      <Select value={estado} onValueChange={setEstado}>
+                        <SelectTrigger id="estado">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {ESTADOS.map((st) => (
+                            <SelectItem key={st} value={st}>
+                              {st}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="prefeito">Nome do Prefeito(a) *</Label>
+                    <Input
+                      id="prefeito"
+                      placeholder="Nome do governante atual"
+                      value={prefeito}
+                      onChange={(e) => setPrefeito(e.target.value)}
+                      required
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="populacao">População Estimada *</Label>
+                      <Input
+                        id="populacao"
+                        type="number"
+                        placeholder="Ex: 45000"
+                        value={populacao}
+                        onChange={(e) => setPopulacao(e.target.value)}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="add-status">Status Operacional</Label>
+                      <Select
+                        value={status}
+                        onValueChange={(v) => setStatus(v as 'Ativo' | 'Pendente' | 'Inativo')}
+                      >
+                        <SelectTrigger id="add-status">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Ativo">Ativo</SelectItem>
+                          <SelectItem value="Pendente">Pendente</SelectItem>
+                          <SelectItem value="Inativo">Inativo</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <DialogFooter className="pt-4 border-t">
+                    <Button type="button" variant="outline" onClick={resetAddForm}>
+                      Cancelar
+                    </Button>
+                    <Button type="submit">Salvar Município</Button>
+                  </DialogFooter>
+                </form>
+              </DialogContent>
+            </Dialog>
+          </div>
+        </CardContent>
+      </Card>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredMunicipios.length === 0 ? (
-          <div className="col-span-full bg-white border border-slate-200 p-12 rounded-2xl text-center text-slate-400">
-            <Building className="h-12 w-12 text-slate-300 mx-auto mb-3" />
-            <p className="font-semibold text-slate-600">Nenhum município correspondente encontrado.</p>
-            <p className="text-xs mt-1">Experimente alterar a sua busca ou adicionar um novo convênio.</p>
+          <div className="col-span-full bg-card border rounded-xl p-12 text-center text-muted-foreground">
+            <Building className="h-12 w-12 text-muted-foreground/40 mx-auto mb-3" />
+            <p className="font-semibold text-card-foreground">
+              Nenhum município correspondente encontrado.
+            </p>
+            <p className="text-xs mt-1">
+              Experimente alterar a sua busca ou adicionar um novo convênio.
+            </p>
           </div>
         ) : (
           filteredMunicipios.map((m) => (
-            <div 
-              key={m.id} 
-              className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:border-slate-300 transition-all p-5 flex flex-col justify-between group"
-            >
-              <div>
+            <Card key={m.id} className="flex flex-col justify-between group">
+              <CardContent className="p-5">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="p-2.5 bg-slate-50 text-slate-600 rounded-xl group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors">
+                    <div className="p-2.5 bg-muted text-muted-foreground rounded-xl group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors">
                       <MapPin className="h-5 w-5" />
                     </div>
                     <div>
-                      <h4 className="font-bold text-slate-800 text-sm md:text-base group-hover:text-indigo-600 transition-colors">
+                      <CardTitle className="text-sm md:text-base group-hover:text-indigo-600 transition-colors">
                         {m.nome}
-                      </h4>
-                      <p className="text-xs text-slate-400 font-medium">Estado de {m.estado}</p>
+                      </CardTitle>
+                      <p className="text-xs text-muted-foreground font-medium">Estado de {m.estado}</p>
                     </div>
                   </div>
 
-                  <span className={`px-2.5 py-1 rounded-full text-[11px] font-bold ${
-                    m.status === 'Ativo' 
-                      ? 'bg-indigo-50 text-indigo-700 border border-indigo-100' 
-                      : m.status === 'Pendente' 
-                        ? 'bg-amber-50 text-amber-700 border border-amber-100' 
-                        : 'bg-slate-100 text-slate-600 border border-slate-200'
-                  }`}>
+                  <Badge className={cn('pointer-events-none', statusBadgeClass(m.status))}>
                     {m.status}
-                  </span>
+                  </Badge>
                 </div>
 
-                <div className="space-y-2 border-t border-slate-100/80 pt-4 text-xs text-slate-600">
+                <div className="space-y-2 border-t pt-4 text-xs text-muted-foreground">
                   <div className="flex justify-between">
-                    <span className="text-slate-400">Prefeito atual</span>
-                    <span className="font-bold text-slate-700">{m.prefeito}</span>
+                    <span className="text-muted-foreground/60">Prefeito atual</span>
+                    <span className="font-bold text-foreground">{m.prefeito}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-400">População</span>
-                    <span className="font-semibold text-slate-700 flex items-center gap-1">
-                      <Users className="h-3 w-3 text-slate-400" />
+                    <span className="text-muted-foreground/60">População</span>
+                    <span className="font-semibold text-foreground flex items-center gap-1">
+                      <Users className="h-3 w-3 text-muted-foreground" />
                       {m.populacao.toLocaleString('pt-BR')} hab
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-400">Ativação</span>
-                    <span className="font-mono text-slate-500">{m.dataAtivacao}</span>
+                    <span className="text-muted-foreground/60">Ativação</span>
+                    <span className="font-mono text-muted-foreground">{m.dataAtivacao}</span>
                   </div>
                 </div>
-              </div>
 
-              <div className="flex items-center gap-2 mt-5 border-t border-slate-100 pt-4 justify-end">
-                <button 
-                  onClick={() => handleOpenDetail(m, false)}
-                  className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors cursor-pointer"
-                  title="Visualizar Detalhes"
-                >
-                  <Eye className="h-4 w-4" />
-                </button>
-                <button 
-                  onClick={() => handleOpenDetail(m, true)}
-                  className="p-1.5 rounded-lg text-slate-400 hover:text-amber-600 hover:bg-amber-50 transition-colors cursor-pointer"
-                  title="Editar Município"
-                >
-                  <Edit className="h-4 w-4" />
-                </button>
-                <button 
-                  onClick={() => onRemoveMunicipio(m.id)}
-                  className="p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition-colors cursor-pointer"
-                  title="Excluir Convênio"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
+                <div className="flex items-center gap-2 mt-5 border-t pt-4 justify-end">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleOpenDetail(m, false)}
+                    title="Visualizar Detalhes"
+                  >
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleOpenDetail(m, true)}
+                    title="Editar Município"
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => onRemoveMunicipio(m.id)}
+                    title="Excluir Convênio"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           ))
         )}
       </div>
 
-      {/* View / Edit Municipality Details Modal */}
-      {editingMunicipio && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-            <div className="px-6 py-4 bg-slate-50 border-b border-slate-150 flex justify-between items-center">
-              <div className="flex items-center gap-2">
-                <Building className="h-5 w-5 text-indigo-600" />
-                <h3 className="font-bold text-slate-800">
+      <Dialog
+        open={editingMunicipio !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setEditingMunicipio(null)
+            setIsEditMode(false)
+            setEditError('')
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-lg">
+          {editingMunicipio && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <Building className="h-5 w-5 text-primary" />
                   {isEditMode ? 'Editar Município' : 'Detalhes do Município'}
-                </h3>
-              </div>
-              <button 
-                onClick={() => {
-                  setEditingMunicipio(null);
-                  setIsEditMode(false);
-                  setEditError('');
-                }}
-                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
+                </DialogTitle>
+              </DialogHeader>
 
-            {isEditMode ? (
-              <form onSubmit={handleEditSubmit} className="p-6 space-y-4">
-                {editError && (
-                  <div className="bg-rose-50 border border-rose-100 text-rose-700 p-3 rounded-xl text-xs flex items-center gap-2">
-                    <AlertCircle className="h-4 w-4 shrink-0" />
-                    <span>{editError}</span>
+              {isEditMode ? (
+                <form onSubmit={handleEditSubmit} className="space-y-4">
+                  {editError && (
+                    <div className="bg-rose-50 border border-rose-100 text-rose-700 p-3 rounded-xl text-xs flex items-center gap-2">
+                      <AlertCircle className="h-4 w-4 shrink-0" />
+                      <span>{editError}</span>
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="col-span-2 space-y-2">
+                      <Label htmlFor="edit-nome">Nome do Município *</Label>
+                      <Input
+                        id="edit-nome"
+                        placeholder="Ex: Rio Claro"
+                        value={editNome}
+                        onChange={(e) => setEditNome(e.target.value)}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-estado">Estado *</Label>
+                      <Select value={editEstado} onValueChange={setEditEstado}>
+                        <SelectTrigger id="edit-estado">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {ESTADOS.map((st) => (
+                            <SelectItem key={st} value={st}>
+                              {st}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
-                )}
 
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="col-span-2">
-                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Nome do Município *</label>
-                    <input 
-                      type="text" 
-                      placeholder="Ex: Rio Claro"
-                      value={editNome}
-                      onChange={(e) => setEditNome(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-700"
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-prefeito">Nome do Prefeito(a) *</Label>
+                    <Input
+                      id="edit-prefeito"
+                      placeholder="Nome do governante atual"
+                      value={editPrefeito}
+                      onChange={(e) => setEditPrefeito(e.target.value)}
                       required
                     />
                   </div>
-                  <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Estado *</label>
-                    <select 
-                      value={editEstado}
-                      onChange={(e) => setEditEstado(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-700"
-                    >
-                      {['SP', 'RJ', 'MG', 'RS', 'PR', 'SC', 'CE', 'PE', 'BA', 'GO', 'TO', 'MS'].map(st => (
-                        <option key={st} value={st}>{st}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Nome do Prefeito(a) *</label>
-                  <input 
-                    type="text" 
-                    placeholder="Nome do governante atual"
-                    value={editPrefeito}
-                    onChange={(e) => setEditPrefeito(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-700"
-                    required
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">População Estimada *</label>
-                    <input 
-                      type="number" 
-                      placeholder="Ex: 45000"
-                      value={editPopulacao}
-                      onChange={(e) => setEditPopulacao(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-700"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Status Operacional</label>
-                    <select 
-                      value={editStatus}
-                      onChange={(e) => setEditStatus(e.target.value as any)}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-700"
-                    >
-                      <option value="Ativo">Ativo</option>
-                      <option value="Pendente">Pendente</option>
-                      <option value="Inativo">Inativo</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="pt-4 border-t border-slate-100 flex justify-end gap-3">
-                  <button 
-                    type="button"
-                    onClick={() => {
-                      setIsEditMode(false);
-                      setEditError('');
-                    }}
-                    className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-500 hover:bg-slate-150 transition-all cursor-pointer"
-                  >
-                    Voltar para Visualização
-                  </button>
-                  <button 
-                    type="submit"
-                    className="px-5 py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-950/10 transition-all cursor-pointer"
-                  >
-                    Salvar Alterações
-                  </button>
-                </div>
-              </form>
-            ) : (
-              <div className="p-6 space-y-6">
-                <div className="bg-slate-50 p-4 rounded-xl border border-slate-150 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
-                      <MapPin className="h-6 w-6" />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-populacao">População Estimada *</Label>
+                      <Input
+                        id="edit-populacao"
+                        type="number"
+                        placeholder="Ex: 45000"
+                        value={editPopulacao}
+                        onChange={(e) => setEditPopulacao(e.target.value)}
+                        required
+                      />
                     </div>
-                    <div>
-                      <h4 className="font-extrabold text-slate-800 text-lg">{editingMunicipio.nome}</h4>
-                      <p className="text-xs text-slate-400 font-semibold">Estado de {editingMunicipio.estado}</p>
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-status">Status Operacional</Label>
+                      <Select
+                        value={editStatus}
+                        onValueChange={(v) =>
+                          setEditStatus(v as 'Ativo' | 'Pendente' | 'Inativo')
+                        }
+                      >
+                        <SelectTrigger id="edit-status">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Ativo">Ativo</SelectItem>
+                          <SelectItem value="Pendente">Pendente</SelectItem>
+                          <SelectItem value="Inativo">Inativo</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
-                  <span className={`px-2.5 py-1 rounded-full text-[11px] font-bold ${
-                    editingMunicipio.status === 'Ativo' 
-                      ? 'bg-indigo-50 text-indigo-700 border border-indigo-100' 
-                      : editingMunicipio.status === 'Pendente' 
-                        ? 'bg-amber-50 text-amber-700 border border-amber-100' 
-                        : 'bg-slate-100 text-slate-600 border border-slate-200'
-                  }`}>
-                    {editingMunicipio.status}
-                  </span>
-                </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 space-y-1">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Prefeito(a) Atual</span>
-                    <span className="font-bold text-slate-800 text-sm">{editingMunicipio.prefeito}</span>
+                  <DialogFooter className="pt-4 border-t">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        setIsEditMode(false)
+                        setEditError('')
+                      }}
+                    >
+                      Voltar para Visualização
+                    </Button>
+                    <Button type="submit">Salvar Alterações</Button>
+                  </DialogFooter>
+                </form>
+              ) : (
+                <div className="space-y-6">
+                  <div className="bg-muted p-4 rounded-xl border flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
+                        <MapPin className="h-6 w-6" />
+                      </div>
+                      <div>
+                        <h4 className="font-extrabold text-lg">{editingMunicipio.nome}</h4>
+                        <p className="text-xs text-muted-foreground font-semibold">
+                          Estado de {editingMunicipio.estado}
+                        </p>
+                      </div>
+                    </div>
+                    <Badge className={cn('pointer-events-none', statusBadgeClass(editingMunicipio.status))}>
+                      {editingMunicipio.status}
+                    </Badge>
                   </div>
-                  <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 space-y-1">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">População Estimada</span>
-                    <span className="font-bold text-slate-800 text-sm flex items-center gap-1.5">
-                      <Users className="h-4 w-4 text-slate-400" />
-                      {editingMunicipio.populacao.toLocaleString('pt-BR')} habitantes
-                    </span>
-                  </div>
-                  <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 space-y-1 col-span-2">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Data de Adesão / Ativação</span>
-                    <span className="font-bold text-slate-800 text-sm">{editingMunicipio.dataAtivacao}</span>
-                  </div>
-                </div>
 
-                <div className="pt-4 border-t border-slate-100 flex justify-end gap-3">
-                  <button 
-                    type="button"
-                    onClick={() => {
-                      setEditingMunicipio(null);
-                    }}
-                    className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-500 hover:bg-slate-150 transition-all cursor-pointer"
-                  >
-                    Fechar
-                  </button>
-                  <button 
-                    type="button"
-                    onClick={() => setIsEditMode(true)}
-                    className="px-5 py-2 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-600 text-white shadow-md shadow-amber-950/10 transition-all flex items-center gap-1.5 cursor-pointer"
-                  >
-                    <Edit className="h-3.5 w-3.5" />
-                    <span>Editar Dados</span>
-                  </button>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="p-4 bg-muted rounded-xl border space-y-1">
+                      <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">
+                        Prefeito(a) Atual
+                      </span>
+                      <span className="font-bold text-sm">{editingMunicipio.prefeito}</span>
+                    </div>
+                    <div className="p-4 bg-muted rounded-xl border space-y-1">
+                      <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">
+                        População Estimada
+                      </span>
+                      <span className="font-bold text-sm flex items-center gap-1.5">
+                        <Users className="h-4 w-4 text-muted-foreground" />
+                        {editingMunicipio.populacao.toLocaleString('pt-BR')} habitantes
+                      </span>
+                    </div>
+                    <div className="p-4 bg-muted rounded-xl border space-y-1 col-span-2">
+                      <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">
+                        Data de Adesão / Ativação
+                      </span>
+                      <span className="font-bold text-sm">{editingMunicipio.dataAtivacao}</span>
+                    </div>
+                  </div>
+
+                  <DialogFooter className="pt-4 border-t">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        setEditingMunicipio(null)
+                      }}
+                    >
+                      Fechar
+                    </Button>
+                    <Button
+                      type="button"
+                      onClick={() => setIsEditMode(true)}
+                      className="bg-amber-500 hover:bg-amber-600 text-white"
+                    >
+                      <Edit className="h-3.5 w-3.5" />
+                      Editar Dados
+                    </Button>
+                  </DialogFooter>
                 </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+              )}
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
-  );
+  )
 }
