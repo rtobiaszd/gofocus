@@ -4,17 +4,21 @@
  */
 
 import React, { useState } from 'react';
-import { Search, Plus, Sliders, Settings, CheckSquare, Target, AlertTriangle, X, Check, Award } from 'lucide-react';
+import { Search, Plus, Sliders, Settings, CheckSquare, Target, AlertTriangle, X, Check, Award, Edit, Trash2 } from 'lucide-react';
 import { Indicador } from '../types';
 
 interface IndicadoresViewProps {
   indicadores: Indicador[];
   onAddIndicador: (indicador: Omit<Indicador, 'id'>) => void;
+  onEditIndicador: (id: string, updatedFields: Partial<Indicador>) => void;
+  onRemoveIndicador: (id: string) => void;
 }
 
 export default function IndicadoresView({
   indicadores,
-  onAddIndicador
+  onAddIndicador,
+  onEditIndicador,
+  onRemoveIndicador
 }: IndicadoresViewProps) {
   const [search, setSearch] = useState('');
   const [filterCategory, setFilterCategory] = useState<string>('todos');
@@ -29,6 +33,59 @@ export default function IndicadoresView({
   const [valorAtual, setValorAtual] = useState('');
   const [unidade, setUnidade] = useState<'porcentagem' | 'financeiro' | 'taxa' | 'quantidade'>('porcentagem');
   const [error, setError] = useState('');
+
+  // Editing State
+  const [editingIndicador, setEditingIndicador] = useState<Indicador | null>(null);
+  const [editNome, setEditNome] = useState('');
+  const [editSigla, setEditSigla] = useState('');
+  const [editCategoria, setEditCategoria] = useState<'Educação' | 'Saúde' | 'Segurança' | 'Finanças' | 'Saneamento'>('Educação');
+  const [editDescricao, setEditDescricao] = useState('');
+  const [editMeta, setEditMeta] = useState('');
+  const [editValorAtual, setEditValorAtual] = useState('');
+  const [editUnidade, setEditUnidade] = useState<'porcentagem' | 'financeiro' | 'taxa' | 'quantidade'>('porcentagem');
+  const [editError, setEditError] = useState('');
+
+  const startEdit = (ind: Indicador) => {
+    setEditingIndicador(ind);
+    setEditNome(ind.nome);
+    setEditSigla(ind.sigla);
+    setEditCategoria(ind.categoria);
+    setEditDescricao(ind.descricao);
+    setEditMeta(ind.meta.toString());
+    setEditValorAtual(ind.valorAtual.toString());
+    setEditUnidade(ind.unidade);
+    setEditError('');
+  };
+
+  const handleEditSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingIndicador) return;
+
+    if (!editNome.trim() || !editSigla.trim() || !editDescricao.trim() || !editMeta.trim() || !editValorAtual.trim()) {
+      setEditError('Por favor, preencha todos os campos obrigatórios.');
+      return;
+    }
+
+    const metaVal = parseFloat(editMeta);
+    const atualVal = parseFloat(editValorAtual);
+
+    if (isNaN(metaVal) || isNaN(atualVal)) {
+      setEditError('A meta e o valor atual devem ser numéricos.');
+      return;
+    }
+
+    onEditIndicador(editingIndicador.id, {
+      nome: editNome.trim(),
+      sigla: editSigla.trim().toUpperCase(),
+      categoria: editCategoria,
+      descricao: editDescricao.trim(),
+      meta: metaVal,
+      valorAtual: atualVal,
+      unidade: editUnidade
+    });
+
+    setEditingIndicador(null);
+  };
 
   const filteredIndicadores = indicadores.filter(ind => {
     const matchesSearch = ind.nome.toLowerCase().includes(search.toLowerCase()) || 
@@ -276,6 +333,150 @@ export default function IndicadoresView({
         </div>
       )}
 
+      {/* Edit Indicator Dialog Modal */}
+      {editingIndicador && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+            <div className="px-6 py-4 bg-slate-50 border-b border-slate-150 flex justify-between items-center">
+              <div className="flex items-center gap-2">
+                <Sliders className="h-5 w-5 text-indigo-600" />
+                <h3 className="font-bold text-slate-800">Editar Indicador</h3>
+              </div>
+              <button 
+                onClick={() => {
+                  setEditingIndicador(null);
+                  setEditError('');
+                }}
+                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleEditSubmit} className="p-6 space-y-4">
+              {editError && (
+                <div className="bg-rose-50 border border-rose-100 text-rose-700 p-3 rounded-xl text-xs flex items-center gap-2">
+                  <AlertTriangle className="h-4 w-4 shrink-0" />
+                  <span>{editError}</span>
+                </div>
+              )}
+
+              <div className="grid grid-cols-3 gap-4">
+                <div className="col-span-2">
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Nome do Indicador *</label>
+                  <input 
+                    type="text" 
+                    placeholder="Ex: Cobertura Vacinal Geral"
+                    value={editNome}
+                    onChange={(e) => setEditNome(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-700"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Sigla *</label>
+                  <input 
+                    type="text" 
+                    placeholder="Ex: COB_VAC"
+                    value={editSigla}
+                    onChange={(e) => setEditSigla(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-700 font-mono font-bold"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Categoria (Área)</label>
+                  <select 
+                    value={editCategoria}
+                    onChange={(e) => setEditCategoria(e.target.value as any)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-700"
+                  >
+                    <option value="Educação">Educação</option>
+                    <option value="Saúde">Saúde</option>
+                    <option value="Finanças">Finanças</option>
+                    <option value="Segurança">Segurança</option>
+                    <option value="Saneamento">Saneamento</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Unidade de Medida</label>
+                  <select 
+                    value={editUnidade}
+                    onChange={(e) => setEditUnidade(e.target.value as any)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-700"
+                  >
+                    <option value="porcentagem">Porcentagem (%)</option>
+                    <option value="taxa">Taxa / Índice (Ponto decimal)</option>
+                    <option value="quantidade">Quantidade Absoluta</option>
+                    <option value="financeiro">Monetário (R$)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Descrição Técnica / Fórmula *</label>
+                <textarea 
+                  placeholder="Explique como esse indicador é calculado..."
+                  value={editDescricao}
+                  onChange={(e) => setEditDescricao(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-700 h-20 resize-none"
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Meta Nacional/Local *</label>
+                  <input 
+                    type="number" 
+                    step="0.1"
+                    placeholder="Ex: 95"
+                    value={editMeta}
+                    onChange={(e) => setEditMeta(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-700"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Valor Atual Médio *</label>
+                  <input 
+                    type="number" 
+                    step="0.1"
+                    placeholder="Ex: 85"
+                    value={editValorAtual}
+                    onChange={(e) => setEditValorAtual(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-700"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-slate-100 flex justify-end gap-3">
+                <button 
+                  type="button"
+                  onClick={() => {
+                    setEditingIndicador(null);
+                    setEditError('');
+                  }}
+                  className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-500 hover:bg-slate-150 transition-all"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  type="submit"
+                  className="px-5 py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-950/10 transition-all"
+                >
+                  Salvar Alterações
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* Grid of registered indicators */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {filteredIndicadores.map((ind) => {
@@ -297,9 +498,29 @@ export default function IndicadoresView({
                     </span>
                   </div>
                   
-                  <span className="text-slate-400">
-                    <Award className="h-4 w-4" />
-                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <button 
+                      onClick={() => startEdit(ind)}
+                      className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-slate-50 transition-all cursor-pointer"
+                      title="Editar Indicador"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </button>
+                    <button 
+                      onClick={() => {
+                        if (confirm(`Deseja realmente remover o indicador ${ind.nome}?`)) {
+                          onRemoveIndicador(ind.id);
+                        }
+                      }}
+                      className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50/55 transition-all cursor-pointer"
+                      title="Excluir Indicador"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                    <span className="text-slate-400 ml-1">
+                      <Award className="h-4.5 w-4.5" />
+                    </span>
+                  </div>
                 </div>
 
                 <h4 className="font-bold text-slate-800 text-base mb-1.5">{ind.nome}</h4>

@@ -393,6 +393,17 @@ export class RealDatabaseService {
     this.setStored('indicadores', updated);
   }
 
+  static async removeIndicador(id: string): Promise<void> {
+    try {
+      const { error } = await supabase.from('indicadores').delete().eq('id', id);
+      if (error) throw error;
+    } catch (e) {
+      console.warn('Could not delete indicator from Supabase:', e);
+    }
+    const current = this.getStored<Indicador>('indicadores', []);
+    this.setStored('indicadores', current.filter(i => i.id !== id));
+  }
+
   // --- RESULTADOS ---
   static async getResultados(): Promise<ResultadoIndicador[]> {
     try {

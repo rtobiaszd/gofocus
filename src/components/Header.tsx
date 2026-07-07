@@ -15,6 +15,7 @@ interface HeaderProps {
   alertas: Alerta[];
   onMarkAlertaLido: (id: string) => void;
   onGoToView: (view: string) => void;
+  onEditPerfil: () => void;
 }
 
 export default function Header({
@@ -24,7 +25,8 @@ export default function Header({
   onMobileMenuToggle,
   alertas,
   onMarkAlertaLido,
-  onGoToView
+  onGoToView,
+  onEditPerfil
 }: HeaderProps) {
   const [showNotifications, setShowNotifications] = useState(false);
   const unreadAlerts = alertas.filter(a => !a.lido);
@@ -148,14 +150,18 @@ export default function Header({
         {/* User Account / Sign Out */}
         {user && (
           <div className="flex items-center gap-3 border-l border-slate-200 pl-4">
-            <div className="hidden sm:flex flex-col text-right">
-              <span className="text-sm font-semibold text-slate-700">{user.nome}</span>
-              <span className="text-[11px] font-medium text-slate-400 capitalize">{user.cargo.toLowerCase()}</span>
-            </div>
+            <button 
+              onClick={onEditPerfil}
+              className="hidden sm:flex flex-col text-right hover:text-indigo-600 transition-colors cursor-pointer group text-left"
+              title="Editar Meu Perfil"
+            >
+              <span className="text-sm font-semibold text-slate-700 group-hover:text-indigo-600 transition-colors text-right w-full block">{user.nome}</span>
+              <span className="text-[11px] font-medium text-slate-400 capitalize group-hover:text-indigo-400 transition-colors text-right w-full block">Editar Perfil ({user.cargo.toLowerCase()})</span>
+            </button>
             
             <button 
               onClick={onLogout}
-              className="p-2 rounded-xl text-slate-400 hover:text-red-500 hover:bg-red-50/50 transition-colors"
+              className="p-2 rounded-xl text-slate-400 hover:text-red-500 hover:bg-red-50/50 transition-colors cursor-pointer"
               title="Sair"
             >
               <LogOut className="h-5 w-5" />

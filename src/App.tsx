@@ -29,6 +29,7 @@ export default function App() {
   const [currentView, setCurrentView] = useState<string>('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
+  const [showProfileModal, setShowProfileModal] = useState<boolean>(false);
 
   // Core Reactive States
   const [municipios, setMunicipios] = useState<Municipio[]>([]);
@@ -147,6 +148,24 @@ export default function App() {
     const updated = { ...existing, ...updatedFields };
     setUsuarios(usuarios.map(u => u.id === id ? updated : u));
     await RealDatabaseService.saveUsuario(updated);
+    
+    // If the edited user is the current logged in user, keep session in sync
+    if (user && id === user.id) {
+      setUser(updated);
+      localStorage.setItem('gofocus_logged_user', JSON.stringify(updated));
+    }
+  };
+
+  const handleUpdateOwnProfile = async (updatedFields: { nome: string; avatar: string }) => {
+    if (!user) return;
+    const updatedUser = { ...user, ...updatedFields };
+    setUser(updatedUser);
+    localStorage.setItem('gofocus_logged_user', JSON.stringify(updatedUser));
+    
+    // update list
+    setUsuarios(usuarios.map(u => u.id === user.id ? updatedUser : u));
+    await RealDatabaseService.saveUsuario(updatedUser);
+    setShowProfileModal(false);
   };
 
   const handleToggleUsuarioStatus = async (id: string) => {
@@ -167,6 +186,19 @@ export default function App() {
     const created = { id, ...newInd };
     setIndicadores([...indicadores, created]);
     await RealDatabaseService.saveIndicador(created);
+  };
+
+  const handleEditIndicador = async (id: string, updatedFields: Partial<Indicador>) => {
+    const existing = indicadores.find(i => i.id === id);
+    if (!existing) return;
+    const updated = { ...existing, ...updatedFields };
+    setIndicadores(indicadores.map(i => i.id === id ? updated : i));
+    await RealDatabaseService.saveIndicador(updated);
+  };
+
+  const handleRemoveIndicador = async (id: string) => {
+    setIndicadores(indicadores.filter(i => i.id !== id));
+    await RealDatabaseService.removeIndicador(id);
   };
 
   const handleMarkAlertaLido = async (id: string) => {
@@ -281,6 +313,7 @@ export default function App() {
           alertas={alertas}
           onMarkAlertaLido={handleMarkAlertaLido}
           onGoToView={(view) => setCurrentView(view)}
+          onEditPerfil={() => setShowProfileModal(true)}
         />
 
         {/* Dynamic Inner Panel View based on State Selection */}
@@ -319,6 +352,8 @@ export default function App() {
             <IndicadoresView 
               indicadores={indicadores}
               onAddIndicador={handleAddIndicador}
+              onEditIndicador={handleEditIndicador}
+              onRemoveIndicador={handleRemoveIndicador}
             />
           )}
 
@@ -332,6 +367,7 @@ export default function App() {
           {currentView === 'alertas' && (
             <AlertasView 
               alertas={alertas}
+              municipios={municipios}
               onMarkAlertaLido={handleMarkAlertaLido}
               onMarkAllLido={handleMarkAllLido}
               onClearAllAlertas={handleClearAllAlertas}
@@ -356,6 +392,140 @@ export default function App() {
         </main>
       </div>
 
+      {/* Global Profile Modal */}
+      {showProfileModal && user && (
+        <ProfileModal 
+          user={user} 
+          onClose={() => setShowProfileModal(false)} 
+          onSave={handleUpdateOwnProfile} 
+        />
+      )}
+
+    </div>
+  );
+}
+
+interface ProfileModalProps {
+  user: Usuario;
+  onClose: () => void;
+  onSave: (fields: { nome: string; avatar: string }) => void;
+}
+
+function ProfileModal({ user, onClose, onSave }: ProfileModalProps) {
+  const [nome, setNome] = useState(user.nome);
+  const [avatar, setAvatar] = useState(user.avatar || '');
+  const [error, setError] = useState('');
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!nome.trim()) {
+      setError('O nome é obrigatório.');
+      return;
+    }
+    onSave({ nome: nome.trim(), avatar: avatar.trim() });
+  };
+
+  return (
+    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+        <div className="px-6 py-4 bg-slate-50 border-b border-slate-150 flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <span className="h-2.5 w-2.5 rounded-full bg-indigo-600 animate-pulse"></span>
+            <h3 className="font-bold text-slate-800">Configurações do Meu Perfil</h3>
+          </div>
+          <button 
+            onClick={onClose}
+            className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
+          >
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          {error && (
+            <div className="bg-rose-50 border border-rose-100 text-rose-700 p-3 rounded-xl text-xs">
+              <span>{error}</span>
+            </div>
+          )}
+
+          <div>
+            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Nome Completo *</label>
+            <input 
+              type="text" 
+              value={nome}
+              onChange={(e) => setNome(e.target.value)}
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-700"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">E-mail de Trabalho</label>
+            <input 
+              type="email" 
+              value={user.email}
+              disabled
+              className="w-full bg-slate-100 border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-400 cursor-not-allowed"
+            />
+            <span className="text-[10px] text-slate-400 mt-1 block">O e-mail é gerido pelo provedor de identidade do Supabase.</span>
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Cargo / Nível de Acesso</label>
+            <input 
+              type="text" 
+              value={user.cargo}
+              disabled
+              className="w-full bg-slate-100 border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-400 cursor-not-allowed capitalize font-bold"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Link do Avatar (Foto de Perfil)</label>
+            <div className="flex gap-2">
+              <input 
+                type="url" 
+                placeholder="Ex: https://images.unsplash.com/..."
+                value={avatar}
+                onChange={(e) => setAvatar(e.target.value)}
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-700 font-mono text-xs"
+              />
+              <button 
+                type="button"
+                onClick={() => {
+                  const id = 1500000000000 + Math.floor(Math.random() * 1000000);
+                  setAvatar(`https://images.unsplash.com/photo-${id}?w=150&auto=format&fit=crop&q=80`);
+                }}
+                className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl shrink-0 transition-colors cursor-pointer"
+              >
+                Gerar Novo
+              </button>
+            </div>
+            {avatar && (
+              <div className="mt-3 flex items-center gap-2 bg-slate-50 p-2 rounded-xl border border-slate-150">
+                <span className="text-[10px] text-slate-400 font-bold uppercase">Pré-visualização:</span>
+                <img src={avatar} alt="Preview" className="h-10 w-10 rounded-full border border-slate-200 object-cover" onError={(e)=>{(e.target as HTMLImageElement).src='https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150'}} />
+              </div>
+            )}
+          </div>
+
+          <div className="pt-4 border-t border-slate-100 flex justify-end gap-3">
+            <button 
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-500 hover:bg-slate-150 transition-all cursor-pointer"
+            >
+              Cancelar
+            </button>
+            <button 
+              type="submit"
+              className="px-5 py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-950/10 transition-all cursor-pointer"
+            >
+              Salvar Alterações
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

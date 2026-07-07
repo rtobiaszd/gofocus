@@ -30,6 +30,7 @@ export default function UsuariosView({
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [cargo, setCargo] = useState<'Admin' | 'Gestor' | 'Agente'>('Agente');
+  const [avatar, setAvatar] = useState('');
   const [error, setError] = useState('');
   const [editingUsuario, setEditingUsuario] = useState<Usuario | null>(null);
 
@@ -38,6 +39,7 @@ export default function UsuariosView({
     setNome(user.nome);
     setEmail(user.email);
     setCargo(user.cargo);
+    setAvatar(user.avatar || '');
     setShowAddForm(true);
   };
 
@@ -47,6 +49,7 @@ export default function UsuariosView({
     setNome('');
     setEmail('');
     setCargo('Agente');
+    setAvatar('');
     setError('');
   };
 
@@ -69,11 +72,14 @@ export default function UsuariosView({
       return;
     }
 
+    const finalAvatar = avatar.trim() || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80";
+
     if (editingUsuario) {
       onEditUsuario(editingUsuario.id, {
         nome: nome.trim(),
         email: email.trim().toLowerCase(),
-        cargo
+        cargo,
+        avatar: finalAvatar
       });
     } else {
       onAddUsuario({
@@ -81,7 +87,7 @@ export default function UsuariosView({
         email: email.trim().toLowerCase(),
         cargo,
         status: 'Ativo',
-        avatar: `https://images.unsplash.com/photo-${1500000000000 + Math.floor(Math.random() * 100000)}?w=150&auto=format&fit=crop&q=80`
+        avatar: finalAvatar
       });
     }
 
@@ -183,6 +189,35 @@ export default function UsuariosView({
                   <option value="Gestor">Gestor Municipal (Cadastros, Missões e Alertas)</option>
                   <option value="Admin">Administrador Global (Acesso completo e Auditoria)</option>
                 </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Link da Imagem de Perfil (Avatar)</label>
+                <div className="flex gap-2">
+                  <input 
+                    type="url" 
+                    placeholder="Ex: https://images.unsplash.com/..."
+                    value={avatar}
+                    onChange={(e) => setAvatar(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-700 font-mono text-xs"
+                  />
+                  <button 
+                    type="button"
+                    onClick={() => {
+                      const id = 1500000000000 + Math.floor(Math.random() * 1000000);
+                      setAvatar(`https://images.unsplash.com/photo-${id}?w=150&auto=format&fit=crop&q=80`);
+                    }}
+                    className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl shrink-0 transition-colors cursor-pointer"
+                  >
+                    Gerar Novo
+                  </button>
+                </div>
+                {avatar && (
+                  <div className="mt-2 flex items-center gap-2 bg-slate-50 p-2 rounded-xl border border-slate-150">
+                    <span className="text-[10px] text-slate-400 font-bold uppercase">Pré-visualização:</span>
+                    <img src={avatar} alt="Preview" className="h-8 w-8 rounded-full border border-slate-200 object-cover" onError={(e)=>{(e.target as HTMLImageElement).src='https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150'}} />
+                  </div>
+                )}
               </div>
 
               <div className="pt-4 border-t border-slate-100 flex justify-end gap-3">
