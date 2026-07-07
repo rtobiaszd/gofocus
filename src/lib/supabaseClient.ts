@@ -359,8 +359,7 @@ export class RealDatabaseService {
     // If we have local data, return it; otherwise init with defaults
     if (localData.length > 0) return localData;
     return this.getStored<Usuario>('usuarios', [
-      { id: 'demo-user-1', nome: 'Dr. Roberto Silveira (Demo)', email: 'demo@scmsaude.com.br', cargo: 'Admin', status: 'Ativo', avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80', senha: 'senha123' },
-      { id: 'u-2', nome: 'Mariana Costa', email: 'mariana.costa@scmsaude.com.br', cargo: 'Gestor', status: 'Ativo', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80', senha: 'senha123' }
+      { id: 'demo-user-1', nome: 'Dr. Roberto Silveira (Demo)', email: 'demo@scmsaude.com.br', cargo: 'Admin', status: 'Ativo', avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80', senha: 'senha123' }
     ]);
   }
 
