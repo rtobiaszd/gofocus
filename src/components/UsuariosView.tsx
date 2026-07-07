@@ -179,7 +179,7 @@ export default function UsuariosView({
                 </SelectContent>
               </Select>
 
-              <Dialog open={showAddForm} onOpenChange={(open) => { if (!open) handleCloseModal(); }}>
+              <Dialog open={showAddForm} onOpenChange={(open) => { if (open) { setShowAddForm(true); } else { handleCloseModal(); } }}>
                 <DialogTrigger asChild>
                   <Button>
                     <Plus className="h-4 w-4" />

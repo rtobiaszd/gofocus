@@ -322,7 +322,7 @@ export default function DashboardView({
         {/* Right Column: Alert Feed & Notification Quick Actions */}
         <div className="space-y-6">
 
-          <Card className="flex flex-col h-full justify-between">
+          <Card>
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-5">
                 <CardTitle className="text-base">Alertas Críticos</CardTitle>
