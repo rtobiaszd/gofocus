@@ -69,24 +69,82 @@ export default function LoginView({ onLoginSuccess }: LoginViewProps) {
     }
 
     try {
-      // 1. Try real authentication via Supabase Auth client
+      const targetEmail = email.trim().toLowerCase();
+
+      // 1. Try checking inside the public.usuarios table first
+      try {
+        const { data: dbProfiles, error: dbErr } = await supabase
+          .from('usuarios')
+          .select('*')
+          .eq('email', targetEmail);
+        
+        if (!dbErr && dbProfiles && dbProfiles.length > 0) {
+          const profile = dbProfiles[0];
+          // Check if password matches (defaulting to 'senha123' if not set)
+          const expectedSenha = profile.senha || 'senha123';
+          if (expectedSenha === senha) {
+            const loggedUser: Usuario = {
+              id: profile.id,
+              nome: profile.nome,
+              email: profile.email,
+              cargo: profile.cargo as any,
+              status: profile.status as any,
+              avatar: profile.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80',
+              senha: profile.senha
+            };
+            setSuccess(`Autenticado com sucesso via Banco de Dados! Entrando como ${loggedUser.cargo.toLowerCase()}...`);
+            setTimeout(() => {
+              onLoginSuccess(loggedUser);
+              setLoading(false);
+            }, 1000);
+            return;
+          }
+        }
+      } catch (dbQueryErr) {
+        console.warn("Could not query public.usuarios for direct login:", dbQueryErr);
+      }
+
+      // 2. Try checking LocalStorage fallback
+      try {
+        const localUsersJson = localStorage.getItem('gofocus_db_usuarios');
+        if (localUsersJson) {
+          const localUsers = JSON.parse(localUsersJson) as Usuario[];
+          const matchedLocal = localUsers.find(
+            u => u.email.toLowerCase() === targetEmail && 
+            (u.senha === senha || (!u.senha && senha === 'senha123'))
+          );
+          if (matchedLocal) {
+            setSuccess(`Autenticado com sucesso via Banco Local! Entrando como ${matchedLocal.cargo.toLowerCase()}...`);
+            setTimeout(() => {
+              onLoginSuccess(matchedLocal);
+              setLoading(false);
+            }, 1000);
+            return;
+          }
+        }
+      } catch (localErr) {
+        console.warn("Could not query localStorage fallback for login:", localErr);
+      }
+
+      // 3. Try standard Supabase Auth signInWithPassword
       const { data, error: authError } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
+        email: targetEmail,
         password: senha
       });
 
       if (authError) {
         console.warn("Supabase auth failed, verifying demo credentials locally:", authError.message);
         
-        // 2. Demo User Fallback for seamless developer testing and "subir sozinho caso não exista"
-        if (email.trim().toLowerCase() === 'demo@gofocus.com.br' && senha === 'senha123') {
+        // 4. Hardcoded Demo User Fallback for seamless developer testing and "subir sozinho caso não exista"
+        if (targetEmail === 'demo@gofocus.com.br' && senha === 'senha123') {
           const demoUser: Usuario = {
             id: 'demo-user-1',
             nome: 'Dr. Roberto Silveira (Demo)',
             email: 'demo@gofocus.com.br',
             cargo: 'Admin',
             status: 'Ativo',
-            avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80'
+            avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80',
+            senha: 'senha123'
           };
           setSuccess('Autenticado com sucesso via Usuário Demo! Carregando Centro de Decisão...');
           setTimeout(() => {
@@ -115,7 +173,8 @@ export default function LoginView({ onLoginSuccess }: LoginViewProps) {
             email: profile.email,
             cargo: profile.cargo as any,
             status: profile.status as any,
-            avatar: profile.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80'
+            avatar: profile.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80',
+            senha: profile.senha
           };
         } else {
           loggedUser = {
@@ -124,9 +183,10 @@ export default function LoginView({ onLoginSuccess }: LoginViewProps) {
             email: data.user.email || '',
             cargo: 'Gestor',
             status: 'Ativo',
-            avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80'
+            avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80',
+            senha: 'senha123'
           };
-          // Upsert profile inusuarios table
+          // Upsert profile in usuarios table
           await RealDatabaseService.saveUsuario(loggedUser);
         }
 
@@ -137,7 +197,7 @@ export default function LoginView({ onLoginSuccess }: LoginViewProps) {
         }, 1000);
       }
     } catch (err: any) {
-      setError(`Falha na Autenticação Supabase: ${err.message || 'Verifique sua conexão ou as configurações de URL/Anon Key'}`);
+      setError(`Falha na Autenticação: ${err.message || 'Verifique suas credenciais, conexão ou as configurações de URL/Anon Key'}`);
       setLoading(false);
     }
   };

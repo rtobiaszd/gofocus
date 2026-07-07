@@ -20,6 +20,7 @@ export interface Usuario {
   cargo: 'Admin' | 'Gestor' | 'Agente';
   status: 'Ativo' | 'Inativo';
   avatar?: string;
+  senha?: string;
 }
 
 export interface Indicador {

@@ -65,7 +65,8 @@ CREATE TABLE IF NOT EXISTS public.usuarios (
   email TEXT UNIQUE NOT NULL,
   cargo VARCHAR(20) NOT NULL DEFAULT 'Agente',
   status VARCHAR(20) NOT NULL DEFAULT 'Ativo',
-  avatar TEXT
+  avatar TEXT,
+  senha TEXT
 );
 
 CREATE TABLE IF NOT EXISTS public.indicadores (
@@ -154,14 +155,15 @@ CREATE POLICY "Allow public update access" ON public.missoes FOR UPDATE USING (t
 CREATE POLICY "Allow public delete access" ON public.missoes FOR DELETE USING (true);
 
 -- 2. Populate Demo / Test user and initial sample metrics
-INSERT INTO public.usuarios (id, nome, email, cargo, status, avatar)
+INSERT INTO public.usuarios (id, nome, email, cargo, status, avatar, senha)
 VALUES (
   'demo-user-1', 
   'Dr. Roberto Silveira (Demo)', 
   'demo@gofocus.com.br', 
   'Admin', 
   'Ativo', 
-  'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80'
+  'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80',
+  'senha123'
 ) ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO public.municipios (id, nome, estado, populacao, status, prefeito, data_ativacao)
@@ -316,7 +318,8 @@ export class RealDatabaseService {
           email: u.email,
           cargo: u.cargo as any,
           status: u.status as any,
-          avatar: u.avatar
+          avatar: u.avatar,
+          senha: u.senha || 'senha123'
         }));
         this.setStored('usuarios', mapped);
         return mapped;
@@ -325,8 +328,8 @@ export class RealDatabaseService {
       console.warn('Real Supabase query failed, falling back to dynamic LocalStorage DB:', e);
     }
     return this.getStored<Usuario>('usuarios', [
-      { id: 'demo-user-1', nome: 'Dr. Roberto Silveira (Demo)', email: 'demo@gofocus.com.br', cargo: 'Admin', status: 'Ativo', avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80' },
-      { id: 'u-2', nome: 'Mariana Costa', email: 'mariana.costa@gofocus.com.br', cargo: 'Gestor', status: 'Ativo', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80' }
+      { id: 'demo-user-1', nome: 'Dr. Roberto Silveira (Demo)', email: 'demo@gofocus.com.br', cargo: 'Admin', status: 'Ativo', avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80', senha: 'senha123' },
+      { id: 'u-2', nome: 'Mariana Costa', email: 'mariana.costa@gofocus.com.br', cargo: 'Gestor', status: 'Ativo', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80', senha: 'senha123' }
     ]);
   }
 
@@ -338,7 +341,8 @@ export class RealDatabaseService {
         email: usuario.email,
         cargo: usuario.cargo,
         status: usuario.status,
-        avatar: usuario.avatar
+        avatar: usuario.avatar,
+        senha: usuario.senha || 'senha123'
       });
       if (error) throw error;
     } catch (e) {
@@ -615,7 +619,8 @@ export class RealDatabaseService {
         email: 'demo@gofocus.com.br',
         cargo: 'Admin',
         status: 'Ativo',
-        avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80'
+        avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80',
+        senha: 'senha123'
       };
 
       // We'll write to public.usuarios via Supabase Client
@@ -625,7 +630,8 @@ export class RealDatabaseService {
         email: demoUser.email,
         cargo: demoUser.cargo,
         status: demoUser.status,
-        avatar: demoUser.avatar
+        avatar: demoUser.avatar,
+        senha: demoUser.senha
       });
 
       if (userError) {

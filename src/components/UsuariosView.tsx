@@ -4,7 +4,7 @@
  */
 
 import React, { useState } from 'react';
-import { Search, Plus, UserCheck, Shield, Mail, ToggleLeft, ToggleRight, Trash2, X, AlertCircle, Pencil, Upload } from 'lucide-react';
+import { Search, Plus, UserCheck, Shield, Mail, ToggleLeft, ToggleRight, Trash2, X, AlertCircle, Pencil, Upload, Eye, EyeOff } from 'lucide-react';
 import { Usuario } from '../types';
 
 interface UsuariosViewProps {
@@ -31,6 +31,8 @@ export default function UsuariosView({
   const [email, setEmail] = useState('');
   const [cargo, setCargo] = useState<'Admin' | 'Gestor' | 'Agente'>('Agente');
   const [avatar, setAvatar] = useState('');
+  const [senha, setSenha] = useState('');
+  const [revealSenha, setRevealSenha] = useState(false);
   const [error, setError] = useState('');
   const [editingUsuario, setEditingUsuario] = useState<Usuario | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -78,6 +80,7 @@ export default function UsuariosView({
     setEmail(user.email);
     setCargo(user.cargo);
     setAvatar(user.avatar || '');
+    setSenha(user.senha || 'senha123');
     setShowAddForm(true);
   };
 
@@ -88,6 +91,7 @@ export default function UsuariosView({
     setEmail('');
     setCargo('Agente');
     setAvatar('');
+    setSenha('');
     setError('');
   };
 
@@ -110,6 +114,11 @@ export default function UsuariosView({
       return;
     }
 
+    if (!senha.trim()) {
+      setError('Por favor, defina uma senha de acesso.');
+      return;
+    }
+
     const finalAvatar = avatar.trim() || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80";
 
     if (editingUsuario) {
@@ -117,7 +126,8 @@ export default function UsuariosView({
         nome: nome.trim(),
         email: email.trim().toLowerCase(),
         cargo,
-        avatar: finalAvatar
+        avatar: finalAvatar,
+        senha: senha.trim()
       });
     } else {
       onAddUsuario({
@@ -125,7 +135,8 @@ export default function UsuariosView({
         email: email.trim().toLowerCase(),
         cargo,
         status: 'Ativo',
-        avatar: finalAvatar
+        avatar: finalAvatar,
+        senha: senha.trim()
       });
     }
 
@@ -227,6 +238,28 @@ export default function UsuariosView({
                   <option value="Gestor">Gestor Municipal (Cadastros, Missões e Alertas)</option>
                   <option value="Admin">Administrador Global (Acesso completo e Auditoria)</option>
                 </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Senha de Acesso *</label>
+                <div className="relative">
+                  <input 
+                    type={revealSenha ? "text" : "password"}
+                    placeholder="Defina a senha de acesso"
+                    value={senha}
+                    onChange={(e) => setSenha(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-3 pr-10 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-700 font-mono"
+                    required
+                  />
+                  <button 
+                    type="button"
+                    onClick={() => setRevealSenha(!revealSenha)}
+                    className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 transition-colors"
+                  >
+                    {revealSenha ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+                <p className="text-[10px] text-slate-400 mt-1">Essa senha será utilizada pelo colaborador para fazer login.</p>
               </div>
 
               {/* Profile Image Drag-and-Drop and Manual Upload */}
@@ -347,6 +380,7 @@ export default function UsuariosView({
                 <th className="py-4 px-6">Usuário</th>
                 <th className="py-4 px-6">E-mail</th>
                 <th className="py-4 px-6">Nível de Acesso (Cargo)</th>
+                <th className="py-4 px-6">Senha</th>
                 <th className="py-4 px-6 text-center">Status</th>
                 <th className="py-4 px-6 text-right">Ações</th>
               </tr>
@@ -384,6 +418,11 @@ export default function UsuariosView({
                       <UserCheck className="h-3.5 w-3.5" />
                       {user.cargo}
                     </span>
+                  </td>
+                  <td className="py-4 px-6">
+                    <code className="bg-slate-100 text-slate-700 px-2.5 py-1.5 rounded-lg text-xs font-mono font-bold tracking-wide border border-slate-200">
+                      {user.senha || 'senha123'}
+                    </code>
                   </td>
                   <td className="py-4 px-6 text-center">
                     <button 
