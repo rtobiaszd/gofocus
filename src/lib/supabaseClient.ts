@@ -166,6 +166,17 @@ VALUES (
   'senha123'
 ) ON CONFLICT (id) DO NOTHING;
 
+INSERT INTO public.usuarios (id, nome, email, cargo, status, avatar, senha)
+VALUES (
+  'u-2', 
+  'Mariana Costa', 
+  'mariana.costa@scmsaude.com.br', 
+  'Gestor', 
+  'Ativo', 
+  'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
+  'senha123'
+) ON CONFLICT (id) DO NOTHING;
+
 INSERT INTO public.municipios (id, nome, estado, populacao, status, prefeito, data_ativacao)
 VALUES (
   'm-1', 
