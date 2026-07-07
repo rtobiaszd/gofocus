@@ -636,7 +636,6 @@ function ProfileModal({ user, onClose, onSave }: ProfileModalProps) {
                   )}
                 </div>
               </div>
-            </div>
           </div>
 
           {/* Modal Footer (Unified Save) */}

@@ -380,7 +380,6 @@ export default function UsuariosView({
                 <th className="py-4 px-6">Usuário</th>
                 <th className="py-4 px-6">E-mail</th>
                 <th className="py-4 px-6">Nível de Acesso (Cargo)</th>
-                <th className="py-4 px-6">Senha</th>
                 <th className="py-4 px-6 text-center">Status</th>
                 <th className="py-4 px-6 text-right">Ações</th>
               </tr>
@@ -418,11 +417,6 @@ export default function UsuariosView({
                       <UserCheck className="h-3.5 w-3.5" />
                       {user.cargo}
                     </span>
-                  </td>
-                  <td className="py-4 px-6">
-                    <code className="bg-slate-100 text-slate-700 px-2.5 py-1.5 rounded-lg text-xs font-mono font-bold tracking-wide border border-slate-200">
-                      {user.senha || 'senha123'}
-                    </code>
                   </td>
                   <td className="py-4 px-6 text-center">
                     <button 
