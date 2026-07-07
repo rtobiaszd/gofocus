@@ -608,25 +608,25 @@ export default function ArchitectureView({ user }: ArchitectureViewProps) {
   const [copiedScreen, setCopiedScreen] = useState(false);
 
   // System Configurations States (Persisted in localStorage)
-  const [supabaseUrl, setSupabaseUrl] = useState(() => localStorage.getItem('cfg_supabase_url') || 'https://kqib37dbhrwgllgqllqyec.supabase.co');
-  const [supabaseAnonKey, setSupabaseAnonKey] = useState(() => localStorage.getItem('cfg_supabase_anon_key') || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtxaWIzN2RiaHJ3Z2xsZ3FsbHF5ZWMiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTY3MjUwMDAwMCwiZXhwIjoyMDgwMDYwMDAwfQ.anon_key_secret_pattern');
-  const [supabaseServiceRole, setSupabaseServiceRole] = useState(() => localStorage.getItem('cfg_supabase_service_role') || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtxaWIzN2RiaHJ3Z2xsZ3FsbHF5ZWMiLCJyb2xlIjoic2VydmljZV9yb2xlIn0.service_role_secret_pattern');
+  const [supabaseUrl, setSupabaseUrl] = useState(() => localStorage.getItem('cfg_supabase_url') || 'https://wpblbpehhfafzouxcmis.supabase.co');
+  const [supabaseAnonKey, setSupabaseAnonKey] = useState(() => localStorage.getItem('cfg_supabase_anon_key') || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndwYmxicGVoaGZhZnpvdXNjbWlzIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NzI1MDAwMDAsImV4cCI6MjA4MDA2MDAwMH0.anon_key_gofocus_secret');
+  const [supabaseServiceRole, setSupabaseServiceRole] = useState(() => localStorage.getItem('cfg_supabase_service_role') || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndwYmxicGVoaGZhZnpvdXNjbWlzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSJ9.service_role_gofocus_secret');
 
   const [dbHost, setDbHost] = useState(() => localStorage.getItem('cfg_db_host') || 'aws-0-us-east-1.pooler.supabase.com');
   const [dbPort, setDbPort] = useState(() => localStorage.getItem('cfg_db_port') || '5432');
   const [dbName, setDbName] = useState(() => localStorage.getItem('cfg_db_name') || 'postgres');
-  const [dbUser, setDbUser] = useState(() => localStorage.getItem('cfg_db_user') || 'postgres.kqib37dbhrwgllgqllqyec');
+  const [dbUser, setDbUser] = useState(() => localStorage.getItem('cfg_db_user') || 'postgres.wpblbpehhfafzouxcmis');
   const [dbPass, setDbPass] = useState(() => localStorage.getItem('cfg_db_pass') || '••••••••••••••••••••');
 
-  const [vercelProjectId, setVercelProjectId] = useState(() => localStorage.getItem('cfg_vercel_project_id') || 'prj_gpi_nextjs_prod');
-  const [vercelOrgId, setVercelOrgId] = useState(() => localStorage.getItem('cfg_vercel_org_id') || 'team_gestao_publica');
-  const [vercelDeployHook, setVercelDeployHook] = useState(() => localStorage.getItem('cfg_vercel_deploy_hook') || 'https://api.vercel.com/v1/integrations/deploy/prj_gpi_nextjs_prod/web_hook_url');
+  const [vercelProjectId, setVercelProjectId] = useState(() => localStorage.getItem('cfg_vercel_project_id') || 'prj_gofocus_nextjs_prod');
+  const [vercelOrgId, setVercelOrgId] = useState(() => localStorage.getItem('cfg_vercel_org_id') || 'team_gofocus_infra');
+  const [vercelDeployHook, setVercelDeployHook] = useState(() => localStorage.getItem('cfg_vercel_deploy_hook') || 'https://api.vercel.com/v1/integrations/deploy/prj_gofocus_nextjs_prod/web_hook_url');
 
   const [smtpHost, setSmtpHost] = useState(() => localStorage.getItem('cfg_smtp_host') || 'smtp.sendgrid.net');
   const [smtpPort, setSmtpPort] = useState(() => localStorage.getItem('cfg_smtp_port') || '587');
   const [smtpUser, setSmtpUser] = useState(() => localStorage.getItem('cfg_smtp_user') || 'apikey');
   const [smtpPass, setSmtpPass] = useState(() => localStorage.getItem('cfg_smtp_pass') || '••••••••••••••••••••');
-  const [smtpSender, setSmtpSender] = useState(() => localStorage.getItem('cfg_smtp_sender') || 'alertas@gestaomunicipal.gov.br');
+  const [smtpSender, setSmtpSender] = useState(() => localStorage.getItem('cfg_smtp_sender') || 'alertas@gofocus.com.br');
 
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState('');
@@ -1374,23 +1374,23 @@ CREATE TABLE resultados (
                   localStorage.removeItem('cfg_smtp_pass');
                   localStorage.removeItem('cfg_smtp_sender');
                   
-                  // Reload
-                  setSupabaseUrl('https://kqib37dbhrwgllgqllqyec.supabase.co');
-                  setSupabaseAnonKey('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtxaWIzN2RiaHJ3Z2xsZ3FsbHF5ZWMiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTY3MjUwMDAwMCwiZXhwIjoyMDgwMDYwMDAwfQ.anon_key_secret_pattern');
-                  setSupabaseServiceRole('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtxaWIzN2RiaHJ3Z2xsZ3FsbHF5ZWMiLCJyb2xlIjoic2VydmljZV9yb2xlIn0.service_role_secret_pattern');
+                  // Reload defaults
+                  setSupabaseUrl('https://wpblbpehhfafzouxcmis.supabase.co');
+                  setSupabaseAnonKey('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndwYmxicGVoaGZhZnpvdXNjbWlzIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NzI1MDAwMDAsImV4cCI6MjA4MDA2MDAwMH0.anon_key_gofocus_secret');
+                  setSupabaseServiceRole('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndwYmxicGVoaGZhZnpvdXNjbWlzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSJ9.service_role_gofocus_secret');
                   setDbHost('aws-0-us-east-1.pooler.supabase.com');
                   setDbPort('5432');
                   setDbName('postgres');
-                  setDbUser('postgres.kqib37dbhrwgllgqllqyec');
+                  setDbUser('postgres.wpblbpehhfafzouxcmis');
                   setDbPass('••••••••••••••••••••');
-                  setVercelProjectId('prj_gpi_nextjs_prod');
-                  setVercelOrgId('team_gestao_publica');
-                  setVercelDeployHook('https://api.vercel.com/v1/integrations/deploy/prj_gpi_nextjs_prod/web_hook_url');
+                  setVercelProjectId('prj_gofocus_nextjs_prod');
+                  setVercelOrgId('team_gofocus_infra');
+                  setVercelDeployHook('https://api.vercel.com/v1/integrations/deploy/prj_gofocus_nextjs_prod/web_hook_url');
                   setSmtpHost('smtp.sendgrid.net');
                   setSmtpPort('587');
                   setSmtpUser('apikey');
                   setSmtpPass('••••••••••••••••••••');
-                  setSmtpSender('alertas@gestaomunicipal.gov.br');
+                  setSmtpSender('alertas@gofocus.com.br');
 
                   setSaveSuccess('Configurações redefinidas para os padrões mockados de fábrica com sucesso!');
                 }
