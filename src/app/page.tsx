@@ -27,7 +27,6 @@ export default function Home() {
   });
   const [currentView, setCurrentView] = useState<string>('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
   const [showProfileModal, setShowProfileModal] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -306,29 +305,18 @@ export default function Home() {
     <div className="flex bg-[#f8fafc] min-h-screen">
       <Sidebar
         currentView={currentView}
-        onViewChange={(view) => {
-          setCurrentView(view);
-          setMobileMenuOpen(false);
-        }}
+        onViewChange={(view) => setCurrentView(view)}
         user={user}
         onLogout={handleLogout}
         collapsed={sidebarCollapsed}
         setCollapsed={setSidebarCollapsed}
       />
 
-      {mobileMenuOpen && (
-        <div
-          onClick={() => setMobileMenuOpen(false)}
-          className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-20 md:hidden"
-        />
-      )}
-
       <div className="flex-1 flex flex-col min-w-0">
         <Header
           title={getViewTitle()}
           user={user}
           onLogout={handleLogout}
-          onMobileMenuToggle={() => setMobileMenuOpen(!mobileMenuOpen)}
           alertas={alertas}
           onMarkAlertaLido={handleMarkAlertaLido}
           onGoToView={(view) => setCurrentView(view)}

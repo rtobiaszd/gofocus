@@ -121,7 +121,7 @@ export default function AlertasView({
               className="text-xs font-semibold"
             >
               <CheckCircle2 className="h-4 w-4 text-indigo-600" />
-              <span>Ligar Todos</span>
+              <span>Ver Todos</span>
             </Button>
 
             <Button

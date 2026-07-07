@@ -1065,7 +1065,7 @@ CREATE TABLE resultados (
                   </div>
                 </CardContent>
               </Card>
-
+{/*
               <Card>
                 <CardHeader>
                   <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
@@ -1196,6 +1196,7 @@ CREATE TABLE resultados (
                   </div>
                 </CardContent>
               </Card>
+              */}
 
               <Card className="hidden">
                 <CardHeader>

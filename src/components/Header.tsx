@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Menu, Bell, LogOut, CheckCircle2, Calendar, User, ChevronDown } from 'lucide-react';
+import { Bell, LogOut, CheckCircle2, Calendar, User, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -19,7 +19,6 @@ interface HeaderProps {
   title: string;
   user: Usuario | null;
   onLogout: () => void;
-  onMobileMenuToggle: () => void;
   alertas: Alerta[];
   onMarkAlertaLido: (id: string) => void;
   onGoToView: (view: string) => void;
@@ -54,7 +53,6 @@ export default function Header({
   title,
   user,
   onLogout,
-  onMobileMenuToggle,
   alertas,
   onMarkAlertaLido,
   onGoToView,
@@ -65,16 +63,6 @@ export default function Header({
   return (
     <header className="h-16 bg-white border-b border-slate-200 sticky top-0 z-20 px-4 md:px-8 flex items-center justify-between shadow-sm">
       <div className="flex items-center gap-3">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="md:hidden text-slate-600"
-          onClick={onMobileMenuToggle}
-          aria-label="Abrir menu"
-        >
-          <Menu className="h-5 w-5" />
-        </Button>
-
         <div className="flex items-center gap-2">
           <span className="text-xl" role="img" aria-label="icon">
             {getTitleIcon(title)}

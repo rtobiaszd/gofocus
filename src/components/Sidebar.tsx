@@ -254,7 +254,7 @@ export default function Sidebar({
       {/* Desktop: Sidebar */}
       <aside
         className={cn(
-          'hidden md:flex flex-col h-screen fixed top-0 left-0 z-30 transition-all duration-300 border-r border-slate-200 bg-white text-slate-600',
+          'hidden md:flex flex-col h-screen sticky top-0 z-30 transition-all duration-300 border-r border-slate-200 bg-white text-slate-600',
           collapsed ? 'w-20' : 'w-72'
         )}
       >
