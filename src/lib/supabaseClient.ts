@@ -308,7 +308,13 @@ export class RealDatabaseService {
 
   // --- USUARIOS ---
   static async getUsuarios(): Promise<Usuario[]> {
-    let localData = this.getStored<Usuario>('usuarios', []);
+    // Read local data without side effects (don't create the key if absent)
+    let localData: Usuario[] = [];
+    try {
+      const raw = localStorage.getItem('db_real_usuarios');
+      if (raw) localData = JSON.parse(raw);
+    } catch (e) {}
+
     try {
       const { data, error } = await supabase.from('usuarios').select('*');
       if (error) throw error;
@@ -330,7 +336,7 @@ export class RealDatabaseService {
         // Keep any users that exist only in localStorage (e.g. just added)
         for (const local of localData) {
           if (!merged.find(m => m.id === local.id)) {
-            merged.push(local);
+            merged.push(local as any);
           }
         }
         this.setStored('usuarios', merged);
@@ -339,6 +345,7 @@ export class RealDatabaseService {
     } catch (e) {
       console.warn('Real Supabase query failed, falling back to dynamic LocalStorage DB:', e);
     }
+    // If we have local data, return it; otherwise init with defaults
     if (localData.length > 0) return localData;
     return this.getStored<Usuario>('usuarios', [
       { id: 'demo-user-1', nome: 'Dr. Roberto Silveira (Demo)', email: 'demo@gofocus.com.br', cargo: 'Admin', status: 'Ativo', avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80', senha: 'senha123' },
