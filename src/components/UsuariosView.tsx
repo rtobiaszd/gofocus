@@ -4,7 +4,7 @@
  */
 
 import React, { useState } from 'react';
-import { Search, Plus, UserCheck, Shield, Mail, ToggleLeft, ToggleRight, Trash2, X, AlertCircle, Pencil } from 'lucide-react';
+import { Search, Plus, UserCheck, Shield, Mail, ToggleLeft, ToggleRight, Trash2, X, AlertCircle, Pencil, Upload } from 'lucide-react';
 import { Usuario } from '../types';
 
 interface UsuariosViewProps {
@@ -33,6 +33,44 @@ export default function UsuariosView({
   const [avatar, setAvatar] = useState('');
   const [error, setError] = useState('');
   const [editingUsuario, setEditingUsuario] = useState<Usuario | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [showUrlInput, setShowUrlInput] = useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file && file.type.startsWith('image/')) {
+      processFile(file);
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      processFile(file);
+    }
+  };
+
+  const processFile = (file: File) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      if (typeof reader.result === 'string') {
+        setAvatar(reader.result);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleStartEdit = (user: Usuario) => {
     setEditingUsuario(user);
@@ -191,33 +229,93 @@ export default function UsuariosView({
                 </select>
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Link da Imagem de Perfil (Avatar)</label>
-                <div className="flex gap-2">
+              {/* Profile Image Drag-and-Drop and Manual Upload */}
+              <div className="space-y-2">
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Imagem de Perfil (Avatar)</label>
+                
+                <div 
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  onClick={() => fileInputRef.current?.click()}
+                  className={`relative border-2 border-dashed rounded-2xl p-4 flex flex-col items-center justify-center transition-all cursor-pointer group overflow-hidden ${
+                    isDragging 
+                      ? 'border-indigo-500 bg-indigo-50/50' 
+                      : 'border-slate-200 hover:border-indigo-400 bg-slate-50/50 hover:bg-slate-50'
+                  }`}
+                >
                   <input 
-                    type="url" 
-                    placeholder="Ex: https://images.unsplash.com/..."
-                    value={avatar}
-                    onChange={(e) => setAvatar(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-700 font-mono text-xs"
+                    type="file" 
+                    ref={fileInputRef}
+                    onChange={handleFileChange}
+                    accept="image/*"
+                    className="hidden"
                   />
-                  <button 
-                    type="button"
-                    onClick={() => {
-                      const id = 1500000000000 + Math.floor(Math.random() * 1000000);
-                      setAvatar(`https://images.unsplash.com/photo-${id}?w=150&auto=format&fit=crop&q=80`);
-                    }}
-                    className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl shrink-0 transition-colors cursor-pointer"
-                  >
-                    Gerar Novo
-                  </button>
+                  
+                  {avatar ? (
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="relative">
+                        <img 
+                          src={avatar} 
+                          alt="Profile avatar" 
+                          className="h-16 w-16 rounded-full object-cover border border-slate-200 shadow-sm"
+                          onError={(e)=>{(e.target as HTMLImageElement).src='https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150'}}
+                        />
+                        <div className="absolute -bottom-1 -right-1 bg-indigo-600 text-white p-1 rounded-full shadow-md group-hover:scale-110 transition-transform">
+                          <Upload className="h-3 w-3" />
+                        </div>
+                      </div>
+                      <span className="text-xs text-slate-500 group-hover:text-indigo-600 transition-colors font-medium text-center">
+                        Arraste uma imagem ou clique para substituir
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center gap-2 py-2">
+                      <div className="p-3 bg-white rounded-full shadow-sm text-slate-400 group-hover:text-indigo-600 transition-colors border border-slate-100">
+                        <Upload className="h-5 w-5" />
+                      </div>
+                      <div className="text-center">
+                        <p className="text-xs font-bold text-slate-700">Fazer Upload de Foto</p>
+                        <p className="text-[10px] text-slate-400 mt-0.5">Arraste e solte ou clique para selecionar</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
-                {avatar && (
-                  <div className="mt-2 flex items-center gap-2 bg-slate-50 p-2 rounded-xl border border-slate-150">
-                    <span className="text-[10px] text-slate-400 font-bold uppercase">Pré-visualização:</span>
-                    <img src={avatar} alt="Preview" className="h-8 w-8 rounded-full border border-slate-200 object-cover" onError={(e)=>{(e.target as HTMLImageElement).src='https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150'}} />
-                  </div>
-                )}
+
+                {/* URL or Random generation section */}
+                <div className="pt-1">
+                  <button 
+                    type="button" 
+                    onClick={() => setShowUrlInput(!showUrlInput)}
+                    className="text-[10px] font-bold text-indigo-600 hover:text-indigo-700 uppercase tracking-wider flex items-center gap-1 cursor-pointer"
+                  >
+                    <span>{showUrlInput ? 'Esconder link / gerador' : 'Ou colar link da imagem / gerar aleatório'}</span>
+                  </button>
+                  
+                  {showUrlInput && (
+                    <div className="mt-2 space-y-2 animate-in fade-in slide-in-from-top-1 duration-150">
+                      <div className="flex gap-2">
+                        <input 
+                          type="url" 
+                          placeholder="Ex: https://images.unsplash.com/..."
+                          value={avatar.startsWith('data:') ? '' : avatar}
+                          onChange={(e) => setAvatar(e.target.value)}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-700 font-mono text-xs"
+                        />
+                        <button 
+                          type="button"
+                          onClick={() => {
+                            const id = 1500000000000 + Math.floor(Math.random() * 1000000);
+                            setAvatar(`https://images.unsplash.com/photo-${id}?w=150&auto=format&fit=crop&q=80`);
+                          }}
+                          className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl shrink-0 transition-colors cursor-pointer whitespace-nowrap"
+                        >
+                          Gerar Aleatório
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="pt-4 border-t border-slate-100 flex justify-end gap-3">

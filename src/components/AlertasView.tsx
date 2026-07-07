@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Alerta, Municipio } from '../types';
 import { Bell, AlertTriangle, CheckCircle2, ShieldAlert, Check, Trash2, Eye, EyeOff, X, Sparkles, MapPin, Target, ShieldCheck, HelpCircle } from 'lucide-react';
 
@@ -25,6 +25,25 @@ export default function AlertasView({
   const [filterType, setFilterType] = useState<'todos' | 'nao-lidos' | 'lidos'>('todos');
   const [filterCriticidade, setFilterCriticidade] = useState<string>('todos');
   const [activeAlerta, setActiveAlerta] = useState<Alerta | null>(null);
+
+  // Read AI configuration state
+  const [aiConfig, setAiConfig] = useState(() => ({
+    provider: localStorage.getItem('gofocus_ai_provider') || 'local',
+    model: localStorage.getItem('gofocus_ai_model') || 'local-ollama-llama3',
+    key: localStorage.getItem('gofocus_ai_key') || ''
+  }));
+
+  useEffect(() => {
+    const handleStorageChange = () => {
+      setAiConfig({
+        provider: localStorage.getItem('gofocus_ai_provider') || 'local',
+        model: localStorage.getItem('gofocus_ai_model') || 'local-ollama-llama3',
+        key: localStorage.getItem('gofocus_ai_key') || ''
+      });
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
 
   const filteredAlertas = alertas.filter(a => {
     const matchesRead = filterType === 'todos' || 
@@ -311,10 +330,30 @@ export default function AlertasView({
 
                 {/* AI-Driven Diagnostic Recommendations */}
                 <div className="space-y-3">
-                  <h5 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                    <Sparkles className="h-4 w-4 text-indigo-500" />
-                    Plano de Ações Corretivas Recomendado (IA GovFocus)
-                  </h5>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <h5 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                      <Sparkles className="h-4 w-4 text-indigo-500" />
+                      Plano de Ações Corretivas Recomendado (IA GovFocus)
+                    </h5>
+                    
+                    {/* Active AI Config info */}
+                    <div className="flex items-center gap-1.5 px-2.5 py-1 bg-indigo-50 border border-indigo-100/40 rounded-lg text-[9px] font-bold text-indigo-700 uppercase tracking-wide shrink-0">
+                      <span>Provedor:</span>
+                      <span className="text-slate-800">
+                        {aiConfig.provider === 'gemini' ? 'Google Gemini' : 
+                         aiConfig.provider === 'openai' ? 'OpenAI GPT' : 
+                         aiConfig.provider === 'claude' ? 'Anthropic Claude' : 'GovFocus Local'}
+                      </span>
+                      <span>•</span>
+                      <span>Modelo:</span>
+                      <span className="text-slate-800 font-mono text-[8px]">{aiConfig.model}</span>
+                      {aiConfig.provider !== 'local' && aiConfig.key && (
+                        <>
+                          <span className="text-emerald-600 font-extrabold">• Chave Ativa</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
                   <p className="text-xs text-slate-500 leading-relaxed">
                     Com base no cruzamento histórico de indicadores regionais e análise preditiva, o assistente recomenda as seguintes ações prioritárias:
                   </p>
