@@ -92,6 +92,10 @@ export default function App() {
     setMunicipios(municipios.filter(m => m.id !== id));
   };
 
+  const handleEditMunicipio = (id: string, updatedFields: Partial<Municipio>) => {
+    setMunicipios(municipios.map(m => m.id === id ? { ...m, ...updatedFields } : m));
+  };
+
   const handleAddUsuario = (newUser: Omit<Usuario, 'id'>) => {
     const id = `u-${Date.now()}`;
     setUsuarios([...usuarios, { id, ...newUser }]);
@@ -217,6 +221,7 @@ export default function App() {
               municipios={municipios}
               onAddMunicipio={handleAddMunicipio}
               onRemoveMunicipio={handleRemoveMunicipio}
+              onEditMunicipio={handleEditMunicipio}
             />
           )}
 

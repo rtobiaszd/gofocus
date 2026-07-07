@@ -4,19 +4,21 @@
  */
 
 import React, { useState } from 'react';
-import { Search, Plus, MapPin, Building, Trash2, Edit, Check, AlertCircle, X, Users } from 'lucide-react';
+import { Search, Plus, MapPin, Building, Trash2, Edit, Check, AlertCircle, X, Users, Eye } from 'lucide-react';
 import { Municipio } from '../types';
 
 interface MunicipiosViewProps {
   municipios: Municipio[];
   onAddMunicipio: (municipio: Omit<Municipio, 'id'>) => void;
   onRemoveMunicipio: (id: string) => void;
+  onEditMunicipio: (id: string, updatedFields: Partial<Municipio>) => void;
 }
 
 export default function MunicipiosView({
   municipios,
   onAddMunicipio,
-  onRemoveMunicipio
+  onRemoveMunicipio,
+  onEditMunicipio
 }: MunicipiosViewProps) {
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('todos');
@@ -29,6 +31,55 @@ export default function MunicipiosView({
   const [prefeito, setPrefeito] = useState('');
   const [status, setStatus] = useState<'Ativo' | 'Pendente' | 'Inativo'>('Ativo');
   const [error, setError] = useState('');
+
+  // Edit & View city states
+  const [editingMunicipio, setEditingMunicipio] = useState<Municipio | null>(null);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editNome, setEditNome] = useState('');
+  const [editEstado, setEditEstado] = useState('SP');
+  const [editPopulacao, setEditPopulacao] = useState('');
+  const [editPrefeito, setEditPrefeito] = useState('');
+  const [editStatus, setEditStatus] = useState<'Ativo' | 'Pendente' | 'Inativo'>('Ativo');
+  const [editError, setEditError] = useState('');
+
+  const handleOpenDetail = (m: Municipio, editImmediately = false) => {
+    setEditingMunicipio(m);
+    setEditNome(m.nome);
+    setEditEstado(m.estado);
+    setEditPrefeito(m.prefeito);
+    setEditPopulacao(m.populacao.toString());
+    setEditStatus(m.status);
+    setIsEditMode(editImmediately);
+    setEditError('');
+  };
+
+  const handleEditSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingMunicipio) return;
+
+    if (!editNome.trim() || !editPrefeito.trim() || !editPopulacao.trim()) {
+      setEditError('Por favor, preencha todos os campos obrigatórios.');
+      return;
+    }
+
+    const popNum = parseInt(editPopulacao);
+    if (isNaN(popNum) || popNum <= 0) {
+      setEditError('A população deve ser um número positivo.');
+      return;
+    }
+
+    onEditMunicipio(editingMunicipio.id, {
+      nome: editNome.trim(),
+      estado: editEstado,
+      populacao: popNum,
+      status: editStatus,
+      prefeito: editPrefeito.trim()
+    });
+
+    setEditingMunicipio(null);
+    setIsEditMode(false);
+    setEditError('');
+  };
 
   const filteredMunicipios = municipios.filter(m => {
     const matchesSearch = m.nome.toLowerCase().includes(search.toLowerCase()) || 
@@ -280,8 +331,22 @@ export default function MunicipiosView({
 
               <div className="flex items-center gap-2 mt-5 border-t border-slate-100 pt-4 justify-end">
                 <button 
+                  onClick={() => handleOpenDetail(m, false)}
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors cursor-pointer"
+                  title="Visualizar Detalhes"
+                >
+                  <Eye className="h-4 w-4" />
+                </button>
+                <button 
+                  onClick={() => handleOpenDetail(m, true)}
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-amber-600 hover:bg-amber-50 transition-colors cursor-pointer"
+                  title="Editar Município"
+                >
+                  <Edit className="h-4 w-4" />
+                </button>
+                <button 
                   onClick={() => onRemoveMunicipio(m.id)}
-                  className="p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition-colors"
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition-colors cursor-pointer"
                   title="Excluir Convênio"
                 >
                   <Trash2 className="h-4 w-4" />
@@ -291,6 +356,187 @@ export default function MunicipiosView({
           ))
         )}
       </div>
+
+      {/* View / Edit Municipality Details Modal */}
+      {editingMunicipio && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+            <div className="px-6 py-4 bg-slate-50 border-b border-slate-150 flex justify-between items-center">
+              <div className="flex items-center gap-2">
+                <Building className="h-5 w-5 text-indigo-600" />
+                <h3 className="font-bold text-slate-800">
+                  {isEditMode ? 'Editar Município' : 'Detalhes do Município'}
+                </h3>
+              </div>
+              <button 
+                onClick={() => {
+                  setEditingMunicipio(null);
+                  setIsEditMode(false);
+                  setEditError('');
+                }}
+                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {isEditMode ? (
+              <form onSubmit={handleEditSubmit} className="p-6 space-y-4">
+                {editError && (
+                  <div className="bg-rose-50 border border-rose-100 text-rose-700 p-3 rounded-xl text-xs flex items-center gap-2">
+                    <AlertCircle className="h-4 w-4 shrink-0" />
+                    <span>{editError}</span>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="col-span-2">
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Nome do Município *</label>
+                    <input 
+                      type="text" 
+                      placeholder="Ex: Rio Claro"
+                      value={editNome}
+                      onChange={(e) => setEditNome(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-700"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Estado *</label>
+                    <select 
+                      value={editEstado}
+                      onChange={(e) => setEditEstado(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-700"
+                    >
+                      {['SP', 'RJ', 'MG', 'RS', 'PR', 'SC', 'CE', 'PE', 'BA', 'GO', 'TO', 'MS'].map(st => (
+                        <option key={st} value={st}>{st}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Nome do Prefeito(a) *</label>
+                  <input 
+                    type="text" 
+                    placeholder="Nome do governante atual"
+                    value={editPrefeito}
+                    onChange={(e) => setEditPrefeito(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-700"
+                    required
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">População Estimada *</label>
+                    <input 
+                      type="number" 
+                      placeholder="Ex: 45000"
+                      value={editPopulacao}
+                      onChange={(e) => setEditPopulacao(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-700"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Status Operacional</label>
+                    <select 
+                      value={editStatus}
+                      onChange={(e) => setEditStatus(e.target.value as any)}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-slate-700"
+                    >
+                      <option value="Ativo">Ativo</option>
+                      <option value="Pendente">Pendente</option>
+                      <option value="Inativo">Inativo</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t border-slate-100 flex justify-end gap-3">
+                  <button 
+                    type="button"
+                    onClick={() => {
+                      setIsEditMode(false);
+                      setEditError('');
+                    }}
+                    className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-500 hover:bg-slate-150 transition-all cursor-pointer"
+                  >
+                    Voltar para Visualização
+                  </button>
+                  <button 
+                    type="submit"
+                    className="px-5 py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-950/10 transition-all cursor-pointer"
+                  >
+                    Salvar Alterações
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <div className="p-6 space-y-6">
+                <div className="bg-slate-50 p-4 rounded-xl border border-slate-150 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
+                      <MapPin className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <h4 className="font-extrabold text-slate-800 text-lg">{editingMunicipio.nome}</h4>
+                      <p className="text-xs text-slate-400 font-semibold">Estado de {editingMunicipio.estado}</p>
+                    </div>
+                  </div>
+                  <span className={`px-2.5 py-1 rounded-full text-[11px] font-bold ${
+                    editingMunicipio.status === 'Ativo' 
+                      ? 'bg-indigo-50 text-indigo-700 border border-indigo-100' 
+                      : editingMunicipio.status === 'Pendente' 
+                        ? 'bg-amber-50 text-amber-700 border border-amber-100' 
+                        : 'bg-slate-100 text-slate-600 border border-slate-200'
+                  }`}>
+                    {editingMunicipio.status}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 space-y-1">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Prefeito(a) Atual</span>
+                    <span className="font-bold text-slate-800 text-sm">{editingMunicipio.prefeito}</span>
+                  </div>
+                  <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 space-y-1">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">População Estimada</span>
+                    <span className="font-bold text-slate-800 text-sm flex items-center gap-1.5">
+                      <Users className="h-4 w-4 text-slate-400" />
+                      {editingMunicipio.populacao.toLocaleString('pt-BR')} habitantes
+                    </span>
+                  </div>
+                  <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 space-y-1 col-span-2">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Data de Adesão / Ativação</span>
+                    <span className="font-bold text-slate-800 text-sm">{editingMunicipio.dataAtivacao}</span>
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t border-slate-100 flex justify-end gap-3">
+                  <button 
+                    type="button"
+                    onClick={() => {
+                      setEditingMunicipio(null);
+                    }}
+                    className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-500 hover:bg-slate-150 transition-all cursor-pointer"
+                  >
+                    Fechar
+                  </button>
+                  <button 
+                    type="button"
+                    onClick={() => setIsEditMode(true)}
+                    className="px-5 py-2 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-600 text-white shadow-md shadow-amber-950/10 transition-all flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Edit className="h-3.5 w-3.5" />
+                    <span>Editar Dados</span>
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
