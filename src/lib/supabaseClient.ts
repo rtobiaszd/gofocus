@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { Municipio, Usuario, Indicador, ResultadoIndicador, Alerta, Missao } from '../types';
 
 // Fetch credentials from localStorage (configured in the System Configuration tab) or fallback to defaults
@@ -10,13 +10,35 @@ export const getSupabaseConfig = () => {
   return { url, anonKey, serviceRole };
 };
 
-const config = getSupabaseConfig();
+// Cache client instance and recreate it only if credentials change
+let cachedClient: SupabaseClient | null = null;
+let cachedUrl = '';
+let cachedAnonKey = '';
 
-// Initialize supabase client
-export const supabase = createClient(config.url, config.anonKey, {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
+export const getSupabaseClient = (): SupabaseClient => {
+  const config = getSupabaseConfig();
+  if (!cachedClient || cachedUrl !== config.url || cachedAnonKey !== config.anonKey) {
+    cachedClient = createClient(config.url, config.anonKey, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+      }
+    });
+    cachedUrl = config.url;
+    cachedAnonKey = config.anonKey;
+  }
+  return cachedClient;
+};
+
+// Export supabase as a transparent Proxy that forwards all properties and methods to the dynamically configured client
+export const supabase = new Proxy({} as SupabaseClient, {
+  get(target, prop, receiver) {
+    const client = getSupabaseClient();
+    const value = Reflect.get(client, prop, receiver);
+    if (typeof value === 'function') {
+      return value.bind(client);
+    }
+    return value;
   }
 });
 

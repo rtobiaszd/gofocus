@@ -70,6 +70,12 @@ export default function App() {
     };
 
     initAndLoad();
+
+    // Listen to custom database connected event to re-sync state immediately
+    window.addEventListener('gofocus_db_connected', initAndLoad);
+    return () => {
+      window.removeEventListener('gofocus_db_connected', initAndLoad);
+    };
   }, [user]);
 
   // Auth Handlers

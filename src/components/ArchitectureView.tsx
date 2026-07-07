@@ -30,7 +30,7 @@ import {
   HelpCircle
 } from 'lucide-react';
 import { Usuario } from '../types';
-import { SQL_MIGRATION_SCRIPT } from '../lib/supabaseClient';
+import { SQL_MIGRATION_SCRIPT, RealDatabaseService } from '../lib/supabaseClient';
 
 const FILES_DATA = {
   'middleware.ts': {
@@ -633,6 +633,41 @@ export default function ArchitectureView({ user }: ArchitectureViewProps) {
   const [saveSuccess, setSaveSuccess] = useState('');
   const [saveError, setSaveError] = useState('');
 
+  const [isTestingDb, setIsTestingDb] = useState(false);
+  const [dbTestResult, setDbTestResult] = useState<{ success: boolean; message: string } | null>(null);
+
+  const handleTestDbConnection = async () => {
+    setIsTestingDb(true);
+    setDbTestResult(null);
+
+    // Save current fields temporarily in localStorage so Proxy immediately binds to them
+    localStorage.setItem('cfg_supabase_url', supabaseUrl);
+    localStorage.setItem('cfg_supabase_anon_key', supabaseAnonKey);
+    localStorage.setItem('cfg_supabase_service_role', supabaseServiceRole);
+
+    // Dispatch custom event so listening components (e.g. AlertasView) reload credentials
+    window.dispatchEvent(new Event('storage'));
+
+    try {
+      const res = await RealDatabaseService.checkAndRunInitialMigrations();
+      setDbTestResult({
+        success: res.success,
+        message: res.message
+      });
+      if (res.success) {
+        // Also fire event to notify the App component to reload its data using the new DB connection
+        window.dispatchEvent(new Event('gofocus_db_connected'));
+      }
+    } catch (err: any) {
+      setDbTestResult({
+        success: false,
+        message: err.message || 'Falha crítica ao tentar comunicar com a API do Supabase.'
+      });
+    } finally {
+      setIsTestingDb(false);
+    }
+  };
+
   const handleSaveSettings = (e: React.FormEvent) => {
     e.preventDefault();
     if (user?.cargo !== 'Admin') {
@@ -1183,6 +1218,54 @@ CREATE TABLE resultados (
                     placeholder="Chave de Acesso Total Bypass"
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition-all font-mono"
                   />
+                </div>
+
+                {/* Live Connection Tester inside Card */}
+                <div className="pt-3 border-t border-slate-150 space-y-2.5">
+                  <button
+                    type="button"
+                    onClick={handleTestDbConnection}
+                    disabled={isTestingDb}
+                    className="w-full py-2 px-3 bg-slate-100 hover:bg-slate-200 disabled:bg-slate-50 text-slate-700 text-[11px] font-bold rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer border border-slate-200"
+                  >
+                    <Zap className={`h-3.5 w-3.5 text-indigo-600 ${isTestingDb ? 'animate-bounce' : ''}`} />
+                    <span>{isTestingDb ? 'Testando Conectividade...' : 'Testar Conexão Supabase'}</span>
+                  </button>
+
+                  {dbTestResult && (
+                    <div className={`p-3 rounded-xl border text-[11px] leading-relaxed animate-in fade-in duration-150 ${
+                      dbTestResult.success 
+                        ? 'bg-emerald-50 border-emerald-100 text-emerald-800' 
+                        : dbTestResult.message.toLowerCase().includes('tabelas') || dbTestResult.message.toLowerCase().includes('relation') || dbTestResult.message.toLowerCase().includes('exist')
+                        ? 'bg-amber-50 border-amber-200 text-amber-800'
+                        : 'bg-rose-50 border-rose-150 text-rose-800'
+                    }`}>
+                      <div className="font-bold flex items-center gap-1.5 mb-1">
+                        {dbTestResult.success ? (
+                          <span className="flex h-2 w-2 relative">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                          </span>
+                        ) : (
+                          <span className="h-2 w-2 rounded-full bg-rose-500"></span>
+                        )}
+                        <span>{dbTestResult.success ? 'Conexão Ativa!' : 'Alerta de Sincronização'}</span>
+                      </div>
+                      
+                      <p className="font-medium text-slate-700 mb-1.5">{dbTestResult.message}</p>
+                      
+                      {!dbTestResult.success && (dbTestResult.message.toLowerCase().includes('tabelas') || dbTestResult.message.toLowerCase().includes('relation') || dbTestResult.message.toLowerCase().includes('exist')) && (
+                        <div className="mt-2 bg-white/70 p-2 rounded-lg border border-amber-200/50 space-y-1">
+                          <p className="font-bold text-amber-900 text-[10px] uppercase">Como resolver em 3 passos:</p>
+                          <ol className="list-decimal pl-3.5 text-[10px] text-slate-600 font-semibold space-y-0.5">
+                            <li>Copie o <strong>Script SQL de Migração</strong> (disponível no topo desta página).</li>
+                            <li>No seu painel do Supabase, acesse o menu <strong>SQL Editor</strong> e crie uma nova query (<strong>New Query</strong>).</li>
+                            <li>Cole o script copiado, clique no botão <strong>RUN</strong> e depois volte aqui para testar a conexão!</li>
+                          </ol>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
