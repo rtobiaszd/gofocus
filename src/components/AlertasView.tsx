@@ -50,17 +50,17 @@ export default function AlertasView({
   const [activeAlerta, setActiveAlerta] = useState<Alerta | null>(null)
 
   const [aiConfig, setAiConfig] = useState(() => ({
-    provider: localStorage.getItem('gofocus_ai_provider') || 'local',
-    model: localStorage.getItem('gofocus_ai_model') || 'local-ollama-llama3',
-    key: localStorage.getItem('gofocus_ai_key') || ''
+    provider: localStorage.getItem('scmsaude_ai_provider') || 'local',
+    model: localStorage.getItem('scmsaude_ai_model') || 'local-ollama-llama3',
+    key: localStorage.getItem('scmsaude_ai_key') || ''
   }))
 
   useEffect(() => {
     const handleStorageChange = () => {
       setAiConfig({
-        provider: localStorage.getItem('gofocus_ai_provider') || 'local',
-        model: localStorage.getItem('gofocus_ai_model') || 'local-ollama-llama3',
-        key: localStorage.getItem('gofocus_ai_key') || ''
+        provider: localStorage.getItem('scmsaude_ai_provider') || 'local',
+        model: localStorage.getItem('scmsaude_ai_model') || 'local-ollama-llama3',
+        key: localStorage.getItem('scmsaude_ai_key') || ''
       })
     }
     window.addEventListener('storage', handleStorageChange)
@@ -272,7 +272,7 @@ export default function AlertasView({
           return [
             { title: 'Reunião de Alinhamento Estratégico', desc: 'Convocar o secretário responsável pela pasta municipal afetada para traçar um plano de metas corretivas em 48 horas.' },
             { title: 'Alocação Emergencial de Orçamento', desc: 'Mapear reservas orçamentárias contingentes para focar esforços no indicador que sofreu queda drástica.' },
-            { title: 'Criação de Missão Corretiva no GovFocus', desc: 'Cadastrar uma missão urgente atribuída ao gestor local com prazo máximo de conclusão de 15 dias.' }
+            { title: 'Criação de Missão Corretiva no SCM Saúde Platform', desc: 'Cadastrar uma missão urgente atribuída ao gestor local com prazo máximo de conclusão de 15 dias.' }
           ]
         }
 
@@ -366,7 +366,7 @@ export default function AlertasView({
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     <h5 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
                       <Sparkles className="h-4 w-4 text-indigo-500" />
-                      Plano de Ações Corretivas Recomendado (IA GovFocus)
+                      Plano de Ações Corretivas Recomendado (IA SCM Saúde)
                     </h5>
 
                     <div className="flex items-center gap-1.5 px-2.5 py-1 bg-indigo-50 border border-indigo-100/40 rounded-lg text-[9px] font-bold text-indigo-700 uppercase tracking-wide shrink-0">
@@ -374,7 +374,7 @@ export default function AlertasView({
                       <span className="text-slate-800">
                         {aiConfig.provider === 'gemini' ? 'Google Gemini' :
                          aiConfig.provider === 'openai' ? 'OpenAI GPT' :
-                         aiConfig.provider === 'claude' ? 'Anthropic Claude' : 'GovFocus Local'}
+                         aiConfig.provider === 'claude' ? 'Anthropic Claude' : 'SCM Saúde IA Local'}
                       </span>
                       <span>•</span>
                       <span>Modelo:</span>

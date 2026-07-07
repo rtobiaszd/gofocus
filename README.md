@@ -1,6 +1,6 @@
-# 🏛️ GovFocus MVP — Plataforma SaaS de Alta Performance para Gestão Municipal
+# 🏛️ SCM Saúde Platform — Plataforma SaaS de Alta Performance para Gestão Municipal
 
-> **GovFocus MVP** é uma plataforma moderna de monitoramento de metas, indicadores globais e missões operacionais para governos e municípios. Projetado com foco em usabilidade, conformidade e resiliência de dados, o sistema oferece inteligência e clareza para a tomada de decisões no setor público.
+> **SCM Saúde Platform** é uma plataforma moderna de monitoramento de metas, indicadores globais e missões operacionais para governos e municípios. Projetado com foco em usabilidade, conformidade e resiliência de dados, o sistema oferece inteligência e clareza para a tomada de decisões no setor público.
 
 ---
 
@@ -52,7 +52,7 @@ A aplicação segue uma arquitetura modular moderna e altamente resiliente:
 │   ├── App.tsx            # Controlador central de rotas e estados reativos
 │   ├── main.tsx           # Ponto de entrada React/Vite
 │   └── index.css          # Estilos globais e injeções de design do Tailwind CSS
-├── index.html             # Arquivo HTML principal do GovFocus MVP
+├── index.html             # Arquivo HTML principal do SCM Saúde Platform
 ├── metadata.json          # Metadados do Applet AI Studio
 └── package.json           # Dependências e scripts de automação
 ```
@@ -163,7 +163,7 @@ INSERT INTO public.usuarios (id, nome, email, cargo, status, avatar)
 VALUES (
   'demo-user-1', 
   'Dr. Roberto Silveira (Demo)', 
-  'demo@gofocus.com.br', 
+  'demo@scmsaude.com.br', 
   'Admin', 
   'Ativo', 
   'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80'

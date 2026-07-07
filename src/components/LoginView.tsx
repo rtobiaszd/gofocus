@@ -107,7 +107,7 @@ export default function LoginView({ onLoginSuccess }: LoginViewProps) {
       }
 
       try {
-        const localUsersJson = localStorage.getItem('gofocus_db_usuarios');
+        const localUsersJson = localStorage.getItem('scmsaude_db_usuarios');
         if (localUsersJson) {
           const localUsers = JSON.parse(localUsersJson) as Usuario[];
           const matchedLocal = localUsers.find(
@@ -138,11 +138,11 @@ export default function LoginView({ onLoginSuccess }: LoginViewProps) {
       if (authError) {
         console.warn('Supabase auth failed, verifying demo credentials locally:', authError.message);
 
-        if (targetEmail === 'demo@gofocus.com.br' && senha === 'senha123') {
+        if (targetEmail === 'demo@scmsaude.com.br' && senha === 'senha123') {
           const demoUser: Usuario = {
             id: 'demo-user-1',
             nome: 'Dr. Roberto Silveira (Demo)',
-            email: 'demo@gofocus.com.br',
+            email: 'demo@scmsaude.com.br',
             cargo: 'Admin',
             status: 'Ativo',
             avatar:
@@ -370,13 +370,13 @@ export default function LoginView({ onLoginSuccess }: LoginViewProps) {
                 title="Dr. Roberto (Admin)"
                 onClick={() => {
                   if (isForgotPassword) {
-                    setForgotEmail('demo@gofocus.com.br');
+                    setForgotEmail('demo@scmsaude.com.br');
                   } else {
-                    fillCredentials('demo@gofocus.com.br');
+                    fillCredentials('demo@scmsaude.com.br');
                   }
                 }}
               >
-                🔑 Admin: <strong>demo@gofocus.com.br</strong>
+                🔑 Admin: <strong>demo@scmsaude.com.br</strong>
               </Button>
               <Button
                 type="button"
@@ -386,13 +386,13 @@ export default function LoginView({ onLoginSuccess }: LoginViewProps) {
                 title="Mariana Costa (Gestor)"
                 onClick={() => {
                   if (isForgotPassword) {
-                    setForgotEmail('mariana.costa@gofocus.com.br');
+                    setForgotEmail('mariana.costa@scmsaude.com.br');
                   } else {
-                    fillCredentials('mariana.costa@gofocus.com.br');
+                    fillCredentials('mariana.costa@scmsaude.com.br');
                   }
                 }}
               >
-                🔑 Gestor: <strong>mariana.costa@gofocus...</strong>
+                🔑 Gestor: <strong>mariana.costa@scmsaude...</strong>
               </Button>
             </div>
             {!isForgotPassword && (

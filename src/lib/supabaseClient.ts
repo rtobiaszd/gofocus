@@ -4,7 +4,7 @@ import { Municipio, Usuario, Indicador, ResultadoIndicador, Alerta, Missao } fro
 // Fetch credentials from localStorage (configured in the System Configuration tab) or fallback to defaults
 export const getSupabaseConfig = () => {
   const url = localStorage.getItem('cfg_supabase_url') || 'https://wpblbpehhfafzouxcmis.supabase.co';
-  const anonKey = localStorage.getItem('cfg_supabase_anon_key') || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndwYmxicGVoaGZhZnpvdXNjbWlzIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NzI1MDAwMDAsImV4cCI6MjA4MDA2MDAwMH0.anon_key_gofocus_secret';
+  const anonKey = localStorage.getItem('cfg_supabase_anon_key') || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndwYmxicGVoaGZhZnpvdXNjbWlzIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NzI1MDAwMDAsImV4cCI6MjA4MDA2MDAwMH0.anon_key_scmsaude_secret';
   const serviceRole = localStorage.getItem('cfg_supabase_service_role') || '';
   
   return { url, anonKey, serviceRole };
@@ -44,7 +44,7 @@ export const supabase = new Proxy({} as SupabaseClient, {
 
 // SQL Migration generator script
 export const SQL_MIGRATION_SCRIPT = `-- ==========================================
--- GOFOCUS - DATABASE SCHEMA & TEST SEED MIGRATION
+-- SCM SAUDE - DATABASE SCHEMA & TEST SEED MIGRATION
 -- Paste this script into your Supabase SQL Editor
 -- ==========================================
 
@@ -159,7 +159,7 @@ INSERT INTO public.usuarios (id, nome, email, cargo, status, avatar, senha)
 VALUES (
   'demo-user-1', 
   'Dr. Roberto Silveira (Demo)', 
-  'demo@gofocus.com.br', 
+  'demo@scmsaude.com.br', 
   'Admin', 
   'Ativo', 
   'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80',
@@ -348,8 +348,8 @@ export class RealDatabaseService {
     // If we have local data, return it; otherwise init with defaults
     if (localData.length > 0) return localData;
     return this.getStored<Usuario>('usuarios', [
-      { id: 'demo-user-1', nome: 'Dr. Roberto Silveira (Demo)', email: 'demo@gofocus.com.br', cargo: 'Admin', status: 'Ativo', avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80', senha: 'senha123' },
-      { id: 'u-2', nome: 'Mariana Costa', email: 'mariana.costa@gofocus.com.br', cargo: 'Gestor', status: 'Ativo', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80', senha: 'senha123' }
+      { id: 'demo-user-1', nome: 'Dr. Roberto Silveira (Demo)', email: 'demo@scmsaude.com.br', cargo: 'Admin', status: 'Ativo', avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80', senha: 'senha123' },
+      { id: 'u-2', nome: 'Mariana Costa', email: 'mariana.costa@scmsaude.com.br', cargo: 'Gestor', status: 'Ativo', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80', senha: 'senha123' }
     ]);
   }
 
@@ -620,7 +620,7 @@ export class RealDatabaseService {
       const demoUser: Usuario = {
         id: 'demo-user-1',
         nome: 'Dr. Roberto Silveira (Demo)',
-        email: 'demo@gofocus.com.br',
+        email: 'demo@scmsaude.com.br',
         cargo: 'Admin',
         status: 'Ativo',
         avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80',

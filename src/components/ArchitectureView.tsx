@@ -425,36 +425,36 @@ export default function ArchitectureView({ user }: ArchitectureViewProps) {
   const [copiedScreen, setCopiedScreen] = useState(false);
 
   const [supabaseUrl, setSupabaseUrl] = useState(() => localStorage.getItem('cfg_supabase_url') || 'https://wpblbpehhfafzouxcmis.supabase.co');
-  const [supabaseAnonKey, setSupabaseAnonKey] = useState(() => localStorage.getItem('cfg_supabase_anon_key') || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndwYmxicGVoaGZhZnpvdXNjbWlzIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NzI1MDAwMDAsImV4cCI6MjA4MDA2MDAwMH0.anon_key_gofocus_secret');
-  const [supabaseServiceRole, setSupabaseServiceRole] = useState(() => localStorage.getItem('cfg_supabase_service_role') || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndwYmxicGVoaGZhZnpvdXNjbWlzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSJ9.service_role_gofocus_secret');
+  const [supabaseAnonKey, setSupabaseAnonKey] = useState(() => localStorage.getItem('cfg_supabase_anon_key') || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndwYmxicGVoaGZhZnpvdXNjbWlzIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NzI1MDAwMDAsImV4cCI6MjA4MDA2MDAwMH0.anon_key_scmsaude_secret');
+  const [supabaseServiceRole, setSupabaseServiceRole] = useState(() => localStorage.getItem('cfg_supabase_service_role') || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndwYmxicGVoaGZhZnpvdXNjbWlzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSJ9.service_role_scmsaude_secret');
   const [dbHost, setDbHost] = useState(() => localStorage.getItem('cfg_db_host') || 'aws-0-us-east-1.pooler.supabase.com');
   const [dbPort, setDbPort] = useState(() => localStorage.getItem('cfg_db_port') || '5432');
   const [dbName, setDbName] = useState(() => localStorage.getItem('cfg_db_name') || 'postgres');
   const [dbUser, setDbUser] = useState(() => localStorage.getItem('cfg_db_user') || 'postgres.wpblbpehhfafzouxcmis');
   const [dbPass, setDbPass] = useState(() => localStorage.getItem('cfg_db_pass') || '••••••••••••••••••••');
-  const [vercelProjectId, setVercelProjectId] = useState(() => localStorage.getItem('cfg_vercel_project_id') || 'prj_gofocus_nextjs_prod');
-  const [vercelOrgId, setVercelOrgId] = useState(() => localStorage.getItem('cfg_vercel_org_id') || 'team_gofocus_infra');
-  const [vercelDeployHook, setVercelDeployHook] = useState(() => localStorage.getItem('cfg_vercel_deploy_hook') || 'https://api.vercel.com/v1/integrations/deploy/prj_gofocus_nextjs_prod/web_hook_url');
+  const [vercelProjectId, setVercelProjectId] = useState(() => localStorage.getItem('cfg_vercel_project_id') || 'prj_scmsaude_nextjs_prod');
+  const [vercelOrgId, setVercelOrgId] = useState(() => localStorage.getItem('cfg_vercel_org_id') || 'team_scmsaude_infra');
+  const [vercelDeployHook, setVercelDeployHook] = useState(() => localStorage.getItem('cfg_vercel_deploy_hook') || 'https://api.vercel.com/v1/integrations/deploy/prj_scmsaude_nextjs_prod/web_hook_url');
   const [smtpHost, setSmtpHost] = useState(() => localStorage.getItem('cfg_smtp_host') || 'smtp.sendgrid.net');
   const [smtpPort, setSmtpPort] = useState(() => localStorage.getItem('cfg_smtp_port') || '587');
   const [smtpUser, setSmtpUser] = useState(() => localStorage.getItem('cfg_smtp_user') || 'apikey');
   const [smtpPass, setSmtpPass] = useState(() => localStorage.getItem('cfg_smtp_pass') || '••••••••••••••••••••');
-  const [smtpSender, setSmtpSender] = useState(() => localStorage.getItem('cfg_smtp_sender') || 'alertas@gofocus.com.br');
+  const [smtpSender, setSmtpSender] = useState(() => localStorage.getItem('cfg_smtp_sender') || 'alertas@scmsaude.com.br');
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState('');
   const [saveError, setSaveError] = useState('');
   const [isTestingDb, setIsTestingDb] = useState(false);
   const [dbTestResult, setDbTestResult] = useState<{ success: boolean; message: string } | null>(null);
 
-  const [aiProvider, setAiProvider] = useState(() => localStorage.getItem('gofocus_ai_provider') || 'gemini');
-  const [aiKey, setAiKey] = useState(() => localStorage.getItem('gofocus_ai_key') || '');
+  const [aiProvider, setAiProvider] = useState(() => localStorage.getItem('scmsaude_ai_provider') || 'gemini');
+  const [aiKey, setAiKey] = useState(() => localStorage.getItem('scmsaude_ai_key') || '');
   const [aiModel, setAiModel] = useState(() => {
-    const saved = localStorage.getItem('gofocus_ai_model');
+    const saved = localStorage.getItem('scmsaude_ai_model');
     if (saved) return saved;
-    const provider = localStorage.getItem('gofocus_ai_provider') || 'gemini';
+    const provider = localStorage.getItem('scmsaude_ai_provider') || 'gemini';
     return provider === 'gemini' ? 'gemini-1.5-flash' : provider === 'openai' ? 'gpt-4o-mini' : 'claude-3-haiku';
   });
-  const [aiTemp, setAiTemp] = useState(() => parseFloat(localStorage.getItem('gofocus_ai_temperature') || '0.4'));
+  const [aiTemp, setAiTemp] = useState(() => parseFloat(localStorage.getItem('scmsaude_ai_temperature') || '0.4'));
   const [showAiKey, setShowAiKey] = useState(false);
   const [isTestingAi, setIsTestingAi] = useState(false);
   const [aiTestResult, setAiTestResult] = useState<{ status: 'success' | 'error'; message: string } | null>(null);
@@ -470,7 +470,7 @@ export default function ArchitectureView({ user }: ArchitectureViewProps) {
     try {
       const res = await RealDatabaseService.checkAndRunInitialMigrations();
       setDbTestResult({ success: res.success, message: res.message });
-      if (res.success) window.dispatchEvent(new Event('gofocus_db_connected'));
+      if (res.success) window.dispatchEvent(new Event('scmsaude_db_connected'));
     } catch (err: any) {
       setDbTestResult({ success: false, message: err.message || 'Falha crítica ao tentar comunicar com a API do Supabase.' });
     } finally {
@@ -532,10 +532,10 @@ export default function ArchitectureView({ user }: ArchitectureViewProps) {
       localStorage.setItem('cfg_smtp_user', smtpUser);
       localStorage.setItem('cfg_smtp_pass', smtpPass);
       localStorage.setItem('cfg_smtp_sender', smtpSender);
-      localStorage.setItem('gofocus_ai_provider', aiProvider);
-      localStorage.setItem('gofocus_ai_key', aiKey);
-      localStorage.setItem('gofocus_ai_model', aiModel);
-      localStorage.setItem('gofocus_ai_temperature', aiTemp.toString());
+      localStorage.setItem('scmsaude_ai_provider', aiProvider);
+      localStorage.setItem('scmsaude_ai_key', aiKey);
+      localStorage.setItem('scmsaude_ai_model', aiModel);
+      localStorage.setItem('scmsaude_ai_temperature', aiTemp.toString());
       window.dispatchEvent(new Event('storage'));
       setIsSaving(false);
       setSaveSuccess('Todas as credenciais e configurações de produção foram salvas com sucesso no banco de dados e sincronizadas com o Edge!');
@@ -935,7 +935,7 @@ CREATE TABLE resultados (
                     <div>
                       <CardTitle className="font-extrabold text-slate-100 text-sm md:text-base">MIGRATION: Provisionamento & População do Banco de Dados</CardTitle>
                       <CardDescription className="text-xs text-slate-400 leading-relaxed max-w-xl mt-1">
-                        Copie a migration SQL pre-configurada abaixo e cole no <strong>SQL Editor</strong> do seu console do Supabase. Ela cria todas as tabelas reais do sistema (<code className="text-indigo-300">municipios</code>, <code className="text-indigo-300">usuarios</code>, <code className="text-indigo-300">alertas</code>, etc.), configura as políticas RLS e popula 1 exemplo de teste real para o usuário administrador demo <code className="text-indigo-300 font-semibold font-mono">demo@gofocus.com.br</code> com senha <code className="text-indigo-300 font-semibold">senha123</code>.
+                        Copie a migration SQL pre-configurada abaixo e cole no <strong>SQL Editor</strong> do seu console do Supabase. Ela cria todas as tabelas reais do sistema (<code className="text-indigo-300">municipios</code>, <code className="text-indigo-300">usuarios</code>, <code className="text-indigo-300">alertas</code>, etc.), configura as políticas RLS e popula 1 exemplo de teste real para o usuário administrador demo <code className="text-indigo-300 font-semibold font-mono">demo@scmsaude.com.br</code> com senha <code className="text-indigo-300 font-semibold">senha123</code>.
                       </CardDescription>
                     </div>
                   </div>
@@ -1080,7 +1080,7 @@ CREATE TABLE resultados (
                   <div className="bg-indigo-50 border border-indigo-100 rounded-2xl p-3 flex gap-2.5">
                     <Sparkles className="h-4 w-4 text-indigo-600 shrink-0 mt-0.5" />
                     <p className="text-[11px] text-slate-500 leading-relaxed">
-                      Configure as credenciais e provedor para alimentar o motor de diagnóstico e as sugestões automatizadas de correções do GovFocus.
+                      Configure as credenciais e provedor para alimentar o motor de diagnóstico e as sugestões automatizadas de correções do SCM Saúde Platform.
                     </p>
                   </div>
 
@@ -1098,7 +1098,7 @@ CREATE TABLE resultados (
                         <SelectItem value="gemini">Google Gemini AI</SelectItem>
                         <SelectItem value="openai">OpenAI ChatGPT API</SelectItem>
                         <SelectItem value="claude">Anthropic Claude API</SelectItem>
-                        <SelectItem value="local">GovFocus Local IA (Offline / Simulado)</SelectItem>
+                        <SelectItem value="local">SCM Saúde IA Local (Offline / Simulado)</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -1284,26 +1284,26 @@ CREATE TABLE resultados (
                     localStorage.removeItem('cfg_smtp_user');
                     localStorage.removeItem('cfg_smtp_pass');
                     localStorage.removeItem('cfg_smtp_sender');
-                    localStorage.removeItem('gofocus_ai_provider');
-                    localStorage.removeItem('gofocus_ai_key');
-                    localStorage.removeItem('gofocus_ai_model');
-                    localStorage.removeItem('gofocus_ai_temperature');
+                    localStorage.removeItem('scmsaude_ai_provider');
+                    localStorage.removeItem('scmsaude_ai_key');
+                    localStorage.removeItem('scmsaude_ai_model');
+                    localStorage.removeItem('scmsaude_ai_temperature');
                     setSupabaseUrl('https://wpblbpehhfafzouxcmis.supabase.co');
-                    setSupabaseAnonKey('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndwYmxicGVoaGZhZnpvdXNjbWlzIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NzI1MDAwMDAsImV4cCI6MjA4MDA2MDAwMH0.anon_key_gofocus_secret');
-                    setSupabaseServiceRole('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndwYmxicGVoaGZhZnpvdXNjbWlzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSJ9.service_role_gofocus_secret');
+                    setSupabaseAnonKey('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndwYmxicGVoaGZhZnpvdXNjbWlzIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NzI1MDAwMDAsImV4cCI6MjA4MDA2MDAwMH0.anon_key_scmsaude_secret');
+                    setSupabaseServiceRole('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndwYmxicGVoaGZhZnpvdXNjbWlzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSJ9.service_role_scmsaude_secret');
                     setDbHost('aws-0-us-east-1.pooler.supabase.com');
                     setDbPort('5432');
                     setDbName('postgres');
                     setDbUser('postgres.wpblbpehhfafzouxcmis');
                     setDbPass('••••••••••••••••••••');
-                    setVercelProjectId('prj_gofocus_nextjs_prod');
-                    setVercelOrgId('team_gofocus_infra');
-                    setVercelDeployHook('https://api.vercel.com/v1/integrations/deploy/prj_gofocus_nextjs_prod/web_hook_url');
+                    setVercelProjectId('prj_scmsaude_nextjs_prod');
+                    setVercelOrgId('team_scmsaude_infra');
+                    setVercelDeployHook('https://api.vercel.com/v1/integrations/deploy/prj_scmsaude_nextjs_prod/web_hook_url');
                     setSmtpHost('smtp.sendgrid.net');
                     setSmtpPort('587');
                     setSmtpUser('apikey');
                     setSmtpPass('••••••••••••••••••••');
-                    setSmtpSender('alertas@gofocus.com.br');
+                    setSmtpSender('alertas@scmsaude.com.br');
                     setAiProvider('gemini');
                     setAiKey('');
                     setAiModel('gemini-1.5-flash');

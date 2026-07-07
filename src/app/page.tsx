@@ -20,7 +20,7 @@ import ArchitectureView from '@/components/ArchitectureView';
 export default function Home() {
   const [user, setUser] = useState<Usuario | null>(() => {
     if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('gofocus_logged_user');
+      const saved = localStorage.getItem('scmsaude_logged_user');
       return saved ? JSON.parse(saved) : null;
     }
     return null;
@@ -67,18 +67,18 @@ export default function Home() {
       }
     };
     initAndLoad();
-    window.addEventListener('gofocus_db_connected', initAndLoad);
-    return () => window.removeEventListener('gofocus_db_connected', initAndLoad);
+    window.addEventListener('scmsaude_db_connected', initAndLoad);
+    return () => window.removeEventListener('scmsaude_db_connected', initAndLoad);
   }, [user]);
 
   const handleLoginSuccess = (authenticatedUser: Usuario) => {
-    localStorage.setItem('gofocus_logged_user', JSON.stringify(authenticatedUser));
+    localStorage.setItem('scmsaude_logged_user', JSON.stringify(authenticatedUser));
     setUser(authenticatedUser);
     setCurrentView('dashboard');
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('gofocus_logged_user');
+    localStorage.removeItem('scmsaude_logged_user');
     setUser(null);
   };
 
@@ -158,7 +158,7 @@ export default function Home() {
     }
     if (user && id === user.id) {
       setUser(updated);
-      localStorage.setItem('gofocus_logged_user', JSON.stringify(updated));
+      localStorage.setItem('scmsaude_logged_user', JSON.stringify(updated));
     }
   };
 
@@ -168,7 +168,7 @@ export default function Home() {
     const prevUser = user;
     const prevUsuarios = usuarios;
     setUser(updatedUser);
-    localStorage.setItem('gofocus_logged_user', JSON.stringify(updatedUser));
+    localStorage.setItem('scmsaude_logged_user', JSON.stringify(updatedUser));
     setUsuarios(usuarios.map(u => u.id === user.id ? updatedUser : u));
     try {
       await RealDatabaseService.saveUsuario(updatedUser);
@@ -176,7 +176,7 @@ export default function Home() {
     } catch (e: any) {
       setErrorMessage(e?.message || 'Erro ao salvar perfil no banco de dados');
       setUser(prevUser);
-      localStorage.setItem('gofocus_logged_user', JSON.stringify(prevUser));
+      localStorage.setItem('scmsaude_logged_user', JSON.stringify(prevUser));
       setUsuarios(prevUsuarios);
     }
   };

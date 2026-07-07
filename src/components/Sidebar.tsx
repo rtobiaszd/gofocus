@@ -88,7 +88,7 @@ function SidebarContent({
           </div>
           {(!collapsed || mobile) && (
             <span className="font-bold text-base tracking-tight text-slate-800 truncate">
-              GovFocus MVP
+              SCM Saúde Platform
             </span>
           )}
         </div>

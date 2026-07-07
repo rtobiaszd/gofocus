@@ -4,7 +4,7 @@ import { Toaster } from '@/components/ui/sonner';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'GovFocus',
+  title: 'SCM Saúde Platform',
   description: 'Plataforma de Gestão Pública',
 };
 
